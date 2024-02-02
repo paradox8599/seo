@@ -1,0 +1,24 @@
+FROM node:18-alpine as base
+
+ARG DB_PROVIDER="sqlite"
+ENV DB_PROVIDER=${DB_PROVIDER}
+ENV NODE_ENV=production
+
+WORKDIR /app
+
+COPY . .
+
+RUN npm ci --ignore-scripts \
+    && npm i @esbuild/linux-x64 --ignore-scripts \
+    && npx --yes keystone postinstall --fix \
+    && npm run build:ks \
+    && npm prune --production \
+    && rm -rf /root/.npm \
+    && chown -R node:node /app 
+
+RUN chmod +x run.sh && apk add --no-cache aws-cli postgresql-client
+
+USER node
+
+CMD ["/app/run.sh"]
+

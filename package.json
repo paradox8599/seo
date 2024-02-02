@@ -1,0 +1,45 @@
+{
+  "name": "nextks",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "preinstall": "only-allow npm",
+    "postinstall": "keystone postinstall --fix && npx --yes husky install",
+    "dev:nx": "next dev --port 4000",
+    "dev:ks": "keystone dev",
+    "dev": "concurrently \"npm:dev:*\"",
+    "build:nx": "next build",
+    "start:nx": "next start",
+    "build:ks": "keystone build",
+    "start:ks": "keystone start",
+    "push": "keystone prisma db push",
+    "reset": "keystone prisma db push --force-reset"
+  },
+  "dependencies": {
+    "@keystone-6/auth": "^7.0.2",
+    "@keystone-6/core": "^5.7.1",
+    "@keystone-6/fields-document": "^8",
+    "graphql-yoga": "^5.0.2",
+    "next": "^13.5.6",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "swr": "^2.2.4"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^18.4.3",
+    "@commitlint/config-conventional": "^18.4.3",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10.0.1",
+    "concurrently": "^8.2.2",
+    "dotenv": "^16.3.1",
+    "eslint": "^8",
+    "eslint-config-next": "14.0.4",
+    "husky": "^8.0.3",
+    "only-allow": "^1.2.1",
+    "postcss": "^8",
+    "tailwindcss": "^3.3.0",
+    "typescript": "^5"
+  }
+}

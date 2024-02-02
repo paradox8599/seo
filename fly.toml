@@ -1,0 +1,42 @@
+# fly.toml app configuration file generated for nextks on 2023-12-18T14:22:01+11:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "nextks"
+primary_region = "syd"
+swap_size_mb = 256
+
+[build]
+dockerfile = "Dockerfile.admin"
+
+[build.args]
+DB_PROVIDER = "postgresql"
+
+[env]
+KS_PORT = "3000"
+NEXT_PUBLIC_GRAPHQL_PATH = "/api/graphql"
+NEXT_PUBLIC_SERVER_URL = "https://nextks.fly.dev"
+
+# # secrets, add with `fly secrets` command
+# DATABASE_URL = ""
+# AWS_ENDPOINT_URL=""
+# AWS_CUSTOM_URL=""
+# AWS_ACCESS_KEY_ID=""
+# AWS_SECRET_ACCESS_KEY=""
+
+[http_service]
+internal_port = 3000
+force_https = true
+auto_stop_machines = true
+auto_start_machines = true
+min_machines_running = 1
+processes = ["app"]
+
+[deploy]
+release_command = "npm run push"
+
+[[vm]]
+cpu_kind = "shared"
+cpus = 1
+memory_mb = 256

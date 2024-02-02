@@ -1,0 +1,13 @@
+services:
+  db:
+    image: postgres:15
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_DB: nextks
+      POSTGRES_USER: nextks
+      POSTGRES_PASSWORD: nextks
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - ./.keystone/postgres:/var/lib/postgresql/data
+
