@@ -1,4 +1,8 @@
 import { config } from "@keystone-6/core";
+import { NextApiRequest, NextApiResponse } from "next";
+
+import { type Context } from ".keystone/types";
+import { type PrismaClient } from ".prisma/client"
 
 import { session, withAuth } from "./admin/auth";
 import { lists } from "./admin/schema/_lists";
@@ -9,10 +13,7 @@ import {
   GRAPHQL_PATH,
   KS_PORT,
 } from "./src/lib/variables";
-import { Role } from "./src/lib/types/auth";
 
-import { type Context } from ".keystone/types";
-import { NextApiRequest, NextApiResponse } from "next";
 
 
 function withContext<
@@ -42,11 +43,24 @@ export default withAuth(
     },
     ui: {
       // fix: AdminMeta access denied when login to admin ui
-      isAccessAllowed: (ctx) => ctx.session?.data?.role === Role.Admin,
+      isAccessAllowed: (ctx) => !!ctx.session?.itemId,
     },
     db: {
       provider: DB_PROVIDER,
       url: DATABASE_URL,
+      onConnect: async (context) => {
+        const prisma = context.sudo().prisma as PrismaClient;
+        const count = await prisma.user.count();
+        if (count > 0) return;
+        prisma.prompt.createMany({
+          data: [
+            {
+              name: "SeoTask",
+              prompt: 'You are a professional, Google-aligned SEO expert for shopify products. You will receive a list of product information. In this list, each product will have a title. Generate "SEO Title" (50-60 words, using a format of adjective + attribute) and "SEO Description" (150-160 words) for each based on the product title. Append the generated fields to each product and keep other fields unchanged. Your response should be in json format and strictly follow the type hint: `{"id": number, "SEO Title": string, "SEO Description": string}[]`, with no unecessary space or new line. Thank you and I will tip you $200',
+            }
+          ]
+        });
+      }
     },
     storage: {
       file_store: {

@@ -11,10 +11,22 @@ import {
 import { type Lists } from ".keystone/types";
 import { createdAtField } from "../helpers/fields";
 
-export const TaskSEO: Lists.TaskSEO = list({
+export const SeoTask: Lists.SeoTask = list({
   access: allowAll,
   ui: { listView: { initialColumns: ["id", "store", "status", "createdAt"] } },
-
+  hooks: {
+    afterOperation: async ({ item, operation, context, resolvedData }) => {
+      if (operation === "create") {
+        if (!resolvedData?.inputFile.filename?.toString().endsWith(".csv")) return;
+        const res = await context.query.SeoTask.findOne({
+          where: { id: item.id },
+          query: "inputFile { url }"
+        });
+        const file = await fetch(res.inputFile.url);
+        const csv = await file.blob();
+      }
+    }
+  },
   fields: {
     // sidebar
     createdAt: createdAtField(),
@@ -28,15 +40,26 @@ export const TaskSEO: Lists.TaskSEO = list({
     }),
     inputFile: file({
       storage: "file_store",
-      ui: { itemView: { fieldMode: "read", fieldPosition: "sidebar" } },
+      ui: { itemView: { fieldMode: "edit", fieldPosition: "form" } },
       hooks: {
-        validateInput: ({ addValidationError, resolvedData }) => {
-          if (
-            resolvedData.inputFile.filename === null ||
-            resolvedData.inputFile.filesize === null
-          ) {
-            addValidationError("Input file is required");
+        validateInput: ({ addValidationError, resolvedData, inputData, item, context, operation }) => {
+          if (operation === 'create') {
+            if (
+              !resolvedData.inputFile.filename ||
+              !resolvedData.inputFile.filesize
+            ) {
+              addValidationError("Input file is required");
+            }
           }
+          else if (operation === "update") {
+            if (
+              resolvedData.inputFile.filename !== undefined ||
+              resolvedData.inputFile.filesize !== undefined
+            ) {
+              addValidationError("Input file cannot be changed");
+            }
+          }
+
         },
       },
     }),
@@ -59,10 +82,10 @@ export const TaskSEO: Lists.TaskSEO = list({
         type: graphql.String,
         resolve: async (_item, _args, context) => {
           const prompts = await context.query.Prompt.findMany({
-            where: { name: { equals: "TaskSEO" } },
+            where: { name: { equals: "SeoTask" } },
             query: "prompt",
           });
-          if (prompts.length !== 1) throw Error("SeoTask not found");
+          if (prompts.length !== 1) return "Prompt [SeoTask] not found";
           return prompts[0].prompt;
         },
       }),

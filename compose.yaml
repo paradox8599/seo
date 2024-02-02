@@ -2,7 +2,7 @@ services:
   db:
     image: postgres:15
     ports:
-      - 5432:5432
+      - 5436:5432
     environment:
       POSTGRES_DB: seoks
       POSTGRES_USER: seoks
