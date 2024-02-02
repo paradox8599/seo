@@ -21,8 +21,6 @@ import { createAuth } from "@keystone-6/auth";
 // see https://keystonejs.com/docs/apis/session for the session docs
 import { statelessSessions } from "@keystone-6/core/session";
 
-import { Role } from "../src/lib/types/auth";
-
 // for a stateless session, a SESSION_SECRET should always be provided
 //   especially in production (statelessSessions will throw if SESSION_SECRET is undefined)
 const sessionSecret = randomBytes(32).toString("hex");
@@ -35,7 +33,7 @@ const { withAuth } = createAuth({
   // this is a GraphQL query fragment for fetching what data will be attached to a context.session
   //   this can be helpful for when you are writing your access control functions
   //   you can find out more at https://keystonejs.com/docs/guides/auth-and-access-control
-  sessionData: "role createdAt",
+  sessionData: "name email createdAt",
   secretField: "password",
 
   // WARNING: remove initFirstItem functionality in production
@@ -47,7 +45,6 @@ const { withAuth } = createAuth({
     skipKeystoneWelcome: true,
     fields: ["name"],
     itemData: {
-      role: Role.Admin,
       email: "admin@me.com",
       password: "admin@me.com",
     },
