@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for nextks on 2023-12-18T14:22:01+11:00
+# fly.toml app configuration file generated for seoks on 2023-12-18T14:22:01+11:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = "nextks"
+app = "seoks"
 primary_region = "syd"
 swap_size_mb = 256
 
@@ -16,7 +16,7 @@ DB_PROVIDER = "postgresql"
 [env]
 KS_PORT = "3000"
 NEXT_PUBLIC_GRAPHQL_PATH = "/api/graphql"
-NEXT_PUBLIC_SERVER_URL = "https://nextks.fly.dev"
+NEXT_PUBLIC_SERVER_URL = "https://seoks.fly.dev"
 
 # # secrets, add with `fly secrets` command
 # DATABASE_URL = ""
