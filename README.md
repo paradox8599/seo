@@ -18,9 +18,15 @@ AWS_CUSTOM_URL=""
 AWS_ACCESS_KEY_ID=""
 AWS_SECRET_ACCESS_KEY=""
 
-# using nextjs graphql route as server so no need to start a keystone server
+# Using nextjs graphql route as server so no need to start a keystone server
 NEXT_PUBLIC_SERVER_URL="http://localhost:4000"
 NEXT_PUBLIC_GRAPHQL_PATH="/api/graphql"
+
+# Set proxy endpoint if using gemini pro
+OPENAI_API_KEY=""
+OPENAI_ENDPOINT=""
+# gpt-3.5-turbo if using gemini
+OPENAI_MODEL="gpt-3.5-turbo"
 ```
 
 ## Setup

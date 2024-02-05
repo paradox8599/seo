@@ -1,4 +1,4 @@
-import { Prompt } from "./Prompt";
+import { Instruction } from "./Instruction";
 import { SeoTask } from "./SeoTask";
 import { Store } from "./Store";
 import { User } from "./User";
@@ -8,5 +8,5 @@ export const lists: Lists = {
   User,
   Store,
   SeoTask,
-  Prompt,
+  Instruction,
 };

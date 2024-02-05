@@ -10,6 +10,9 @@ import {
 
 import { type Lists } from ".keystone/types";
 import { createdAtField } from "../helpers/fields";
+import { parseCSV } from "../lib/csv_manager";
+import { TaskQueue } from "../lib/task";
+import { ShopifyProduct } from "../types/task";
 
 export const SeoTask: Lists.SeoTask = list({
   access: allowAll,
@@ -20,10 +23,21 @@ export const SeoTask: Lists.SeoTask = list({
         if (!resolvedData?.inputFile.filename?.toString().endsWith(".csv")) return;
         const res = await context.query.SeoTask.findOne({
           where: { id: item.id },
-          query: "inputFile { url }"
-        });
+          query: "instruction inputFile { url }"
+        }) as { instruction: string; inputFile: { url: string } };
+
         const file = await fetch(res.inputFile.url);
         const csv = await file.blob();
+        const data: ShopifyProduct[] = await parseCSV(await csv.text()) as unknown[] as ShopifyProduct[];
+
+        TaskQueue.add("SeoTask", {
+          id: item.id,
+          type: 'SeoTask',
+          instruction: res.instruction,
+          data: data
+            .filter((r) => r.Status === "Active" && r.Title.trim() !== "")
+            .map((p) => ({ Title: p.Title }))
+        });
       }
     }
   },
@@ -42,7 +56,8 @@ export const SeoTask: Lists.SeoTask = list({
       storage: "file_store",
       ui: { itemView: { fieldMode: "edit", fieldPosition: "form" } },
       hooks: {
-        validateInput: ({ addValidationError, resolvedData, inputData, item, context, operation }) => {
+        // only allow & require upload when creating
+        validateInput: ({ addValidationError, resolvedData, operation }) => {
           if (operation === 'create') {
             if (
               !resolvedData.inputFile.filename ||
@@ -77,16 +92,19 @@ export const SeoTask: Lists.SeoTask = list({
       ref: "Store",
       ui: { itemView: { fieldMode: "read" } },
     }),
-    prompt: virtual({
+    products: integer({
+      ui: { createView: { fieldMode: "hidden" }, itemView: { fieldMode: "read" }, }
+    }),
+    instruction: virtual({
       field: graphql.field({
         type: graphql.String,
         resolve: async (_item, _args, context) => {
-          const prompts = await context.query.Prompt.findMany({
+          const instructions = await context.query.Instruction.findMany({
             where: { name: { equals: "SeoTask" } },
-            query: "prompt",
+            query: "instruction",
           });
-          if (prompts.length !== 1) return "Prompt [SeoTask] not found";
-          return prompts[0].prompt;
+          if (instructions.length !== 1) return "Instruction for [SeoTask] not found";
+          return instructions[0].instruction;
         },
       }),
     }),

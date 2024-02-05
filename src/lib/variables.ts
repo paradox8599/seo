@@ -29,3 +29,7 @@ export const BUCKET = {
   endpointUrl: process.env.AWS_ENDPOINT_URL,
   customUrl: process.env.AWS_CUSTOM_URL,
 };
+
+export const OPENAI_ENDPOINT = (process.env.OPENAI_ENDPOINT ?? "").length > 0 ? new URL(process.env.OPENAI_ENDPOINT) : undefined;
+export const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+export const OPENAI_MODEL = process.env.OPENAI_MODEL ?? "gpt-3.5-turbo";

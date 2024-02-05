@@ -6,12 +6,12 @@ import { type Lists } from ".keystone/types";
 
 import { createdAtField } from "../helpers/fields";
 
-export const Prompt: Lists.Prompt = list({
+export const Instruction: Lists.Instruction = list({
   access: allowAll,
   fields: {
     name: text({ validation: { isRequired: true } }),
     description: text({}),
-    prompt: text({}),
+    instruction: text({}),
     createdAt: createdAtField(),
   },
 });

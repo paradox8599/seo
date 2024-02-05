@@ -13,6 +13,8 @@ import {
   GRAPHQL_PATH,
   KS_PORT,
 } from "./src/lib/variables";
+import { ask } from "./admin/lib/openai";
+import tk from "tiktoken";
 
 
 
@@ -37,9 +39,11 @@ export default withAuth(
     server: {
       port: KS_PORT,
       extendExpressApp(app, context) {
-        app.get("/api/example", withContext(context, (_req, res, _context) => res.json({ hello: "world" })));
+        app.get("/api/example", withContext(context, async (_req, res, _context) => {
+          const chatRes = await ask({ prompt: "why is the sky blue?" });
+          res.json(chatRes);
+        }));
       },
-
     },
     ui: {
       // fix: AdminMeta access denied when login to admin ui
@@ -48,15 +52,18 @@ export default withAuth(
     db: {
       provider: DB_PROVIDER,
       url: DATABASE_URL,
+      // NOTE: server start initialization
       onConnect: async (context) => {
+        // NOTE: create default instructions
         const prisma = context.sudo().prisma as PrismaClient;
-        const count = await prisma.user.count();
+        const count = await prisma.instruction.count();
+        console.log('instruction count', count)
         if (count > 0) return;
-        prisma.prompt.createMany({
+        await prisma.instruction.createMany({
           data: [
             {
               name: "SeoTask",
-              prompt: 'You are a professional, Google-aligned SEO expert for shopify products. You will receive a list of product information. In this list, each product will have a title. Generate "SEO Title" (50-60 words, using a format of adjective + attribute) and "SEO Description" (150-160 words) for each based on the product title. Append the generated fields to each product and keep other fields unchanged. Your response should be in json format and strictly follow the type hint: `{"id": number, "SEO Title": string, "SEO Description": string}[]`, with no unecessary space or new line. Thank you and I will tip you $200',
+              instruction: 'You are a professional, Google-aligned SEO expert for shopify products. You will receive a list of product information. In this list, each product will have a title. Generate "SEO Title" (50-60 words, using a format of adjective + attribute) and "SEO Description" (150-160 words) for each based on the product title. Append the generated fields to each product and keep other fields unchanged. Your response should be in json format and strictly follow the type hint: `{"id": number, "SEO Title": string, "SEO Description": string}[]`, with no unecessary space or new line. Thank you and I will tip you $200',
             }
           ]
         });
