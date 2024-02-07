@@ -59,7 +59,7 @@ async function runSeoTask(context: KeystoneContext) {
   // log
   async function log(log: string) {
     if (!task) return;
-    const logText = `[${new Date().toLocaleString()}] ${log}`;
+    const logText = `[${new Date().toLocaleString("en-AU")}] ${log}`;
     console.log(`${task.id} ${logText}`);
     const item = await ctx.query.SeoTask.findOne({
       where: { id: task.id },
@@ -122,7 +122,6 @@ async function runSeoTask(context: KeystoneContext) {
       const chunk = JSON.parse(data) as ShopifyProduct[];
 
       for (const data of chunk) {
-        console.log(data);
         if (data.id === undefined) throw "Invalid AI response: no id.";
         if (data["SEO Title"] === undefined) throw "Invalid AI response: no SEO Title.";
         if (data["SEO Description"] === undefined) throw "Invalid AI response: no SEO Description.";

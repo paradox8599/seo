@@ -82,7 +82,7 @@ export const SeoTask: Lists.SeoTask = list({
       },
     }),
     outputFile: virtual({
-      ui:{ views: "./admin/views/url" },
+      ui: { views: "./admin/views/url", createView: { fieldMode: "hidden" } },
       field: graphql.field({
         type: graphql.String,
         resolve: async (item) => `${BUCKET.customUrl}/outputs/SeoTask/${item.id}.csv`
