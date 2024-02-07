@@ -1,8 +1,10 @@
 import { type controller } from "@keystone-6/core/fields/types/integer/views";
 import { type FieldProps, type CellComponent } from "@keystone-6/core/types";
 import { FieldContainer, FieldLabel } from "@keystone-ui/fields";
+
 import React from "react";
 import { TaskStatus } from "../types/task";
+
 
 function Status({ status }: { status: TaskStatus }) {
   const colors = {
@@ -29,10 +31,10 @@ function Status({ status }: { status: TaskStatus }) {
   );
 }
 
-export const Field = ({ value }: FieldProps<typeof controller>) => {
+export const Field = ({ field, value }: FieldProps<typeof controller>) => {
   return (
     <FieldContainer>
-      <FieldLabel>Status</FieldLabel>
+      <FieldLabel>{field.label}</FieldLabel>
       <Status status={value.value as TaskStatus} />
     </FieldContainer>
   );

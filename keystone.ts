@@ -74,7 +74,7 @@ export default withAuth(
       }
     },
     storage: {
-      file_store: {
+      input_file_storage: {
         kind: "s3",
         type: "file",
         region: "auto",
@@ -82,7 +82,7 @@ export default withAuth(
         accessKeyId: BUCKET.accessKeyId,
         secretAccessKey: BUCKET.secretAccessKey,
         endpoint: BUCKET.endpointUrl,
-        pathPrefix: "files/",
+        pathPrefix: "inputFiles/",
         generateUrl: (path) => {
           const original = new URL(path);
           const customUrl = new URL(original.pathname, BUCKET.customUrl);

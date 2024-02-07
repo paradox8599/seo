@@ -11,7 +11,7 @@ export const Instruction: Lists.Instruction = list({
   fields: {
     name: text({ validation: { isRequired: true } }),
     description: text({}),
-    instruction: text({}),
+    instruction: text({ ui: { displayMode: "textarea" } }),
     createdAt: createdAtField(),
   },
 });

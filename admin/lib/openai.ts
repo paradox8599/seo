@@ -3,7 +3,11 @@ import OpenAI from "openai";
 import tk from 'tiktoken';
 
 export const token = tk.get_encoding("cl100k_base");
-const openai = new OpenAI({ baseURL: OPENAI_ENDPOINT?.href, apiKey: OPENAI_API_KEY });
+let _openai: OpenAI | undefined;
+function getOpenAI() {
+  _openai ??= new OpenAI({ baseURL: OPENAI_ENDPOINT?.href, apiKey: OPENAI_API_KEY })
+  return _openai;
+}
 
 
 type GeminiMessage = {
@@ -20,7 +24,7 @@ type ChatMessage = GeminiMessage | OpenAIMessage;
 
 export async function ask({ prompt, instruction, history }: { history?: ChatMessage[], prompt: string, instruction?: string }) {
   const instructions: ChatMessage[] = instruction ? [{ role: OPENAI_ENDPOINT ? "user" : "system", content: instruction }] : [];
-  const chatResult = await openai.chat.completions.create({
+  const chatResult = await getOpenAI().chat.completions.create({
     model: OPENAI_MODEL,
     messages: [...instructions, ...(history ?? []), { role: "user", content: prompt }],
   });

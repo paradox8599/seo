@@ -60,7 +60,7 @@ async function runSeoTask(context: KeystoneContext) {
   async function log(log: string) {
     if (!task) return;
     const logText = `[${new Date().toLocaleString()}] ${log}`;
-    console.warn(logText);
+    console.log(`${task.id} ${logText}`);
     const item = await ctx.query.SeoTask.findOne({
       where: { id: task.id },
       query: "logs",
@@ -116,8 +116,10 @@ async function runSeoTask(context: KeystoneContext) {
 
     // replace original products with new content
     for (const a of answers) {
-      const content = (a.choices[0].message.content ?? "{}").replaceAll(/```(json)?/g, '').trim();
-      const chunk = JSON.parse(content) as ShopifyProduct[];
+      const content = a.choices[0].message.content ?? "{}";
+      console.log(content);
+      const data = (content).replaceAll(/```(json)?/g, '').trim();
+      const chunk = JSON.parse(data) as ShopifyProduct[];
 
       for (const data of chunk) {
         console.log(data);
@@ -139,6 +141,7 @@ async function runSeoTask(context: KeystoneContext) {
         ContentType: "text/csv"
       });
       await setStatus(TaskStatus.success);
+      await log("Successful");
     }
   }
   catch (e) {

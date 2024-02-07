@@ -1,6 +1,7 @@
 import { graphql, list } from "@keystone-6/core";
 import { allowAll } from "@keystone-6/core/access";
 import {
+  checkbox,
   file,
   integer,
   relationship,
@@ -16,9 +17,14 @@ import { TaskStatus } from "../types/task";
 
 export const SeoTask: Lists.SeoTask = list({
   access: allowAll,
-  ui: { listView: { initialColumns: ["id", "store", "status", "createdAt"] } },
+  ui: {
+    listView: {
+      initialColumns: ["id", "description", "store", "status", "createdAt"],
+      initialSort: { field: "createdAt", direction: "DESC" },
+    }
+  },
   hooks: {
-    beforeOperation: async ({ item, operation }) => {
+    beforeOperation: async ({ item, operation, inputData }) => {
       if (operation === "delete") {
         await s3.deleteObject({ Key: `outputs/SeoTask/${item.id}.csv`, Bucket: BUCKET.name });
       }
@@ -26,10 +32,13 @@ export const SeoTask: Lists.SeoTask = list({
     afterOperation: async ({ item, operation, resolvedData, context }) => {
       if (operation === "create") {
         if (!resolvedData?.inputFile.filename?.toString().endsWith(".csv")) return;
-
-        TaskQueue.add(Tasks.SeoTask, { id: item.id, type: Tasks.SeoTask });
-
         await context.query.SeoTask.updateOne({ where: { id: item.id }, data: { status: TaskStatus.pending } })
+      }
+      else if (operation === "update") {
+        if (item.retry && item.status !== TaskStatus.pending) {
+          TaskQueue.add(Tasks.SeoTask, { id: item.id, type: Tasks.SeoTask });
+          await context.query.SeoTask.updateOne({ where: { id: item.id }, data: { status: TaskStatus.pending, retry: false } });
+        }
       }
     }
   },
@@ -44,8 +53,10 @@ export const SeoTask: Lists.SeoTask = list({
         itemView: { fieldMode: "read", fieldPosition: "sidebar" },
       },
     }),
+    retry: checkbox({ ui: { createView: { fieldMode: "hidden" }, itemView: { fieldPosition: "sidebar" } } }),
+
     inputFile: file({
-      storage: "file_store",
+      storage: "input_file_storage",
       ui: { itemView: { fieldMode: "edit", fieldPosition: "form" } },
       hooks: {
         // only allow & require upload when creating
@@ -71,9 +82,10 @@ export const SeoTask: Lists.SeoTask = list({
       },
     }),
     outputFile: virtual({
+      ui:{ views: "./admin/views/url" },
       field: graphql.field({
         type: graphql.String,
-        resolve: async (item) => `${BUCKET.customUrl}/outputs%2FSeoTask%2F${item.id}.csv`
+        resolve: async (item) => `${BUCKET.customUrl}/outputs/SeoTask/${item.id}.csv`
       })
     }),
 
