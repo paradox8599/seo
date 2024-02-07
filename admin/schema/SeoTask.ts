@@ -8,36 +8,28 @@ import {
   virtual,
 } from "@keystone-6/core/fields";
 
-import { type Lists } from ".keystone/types";
+import { BUCKET } from "../../src/lib/variables";
 import { createdAtField } from "../helpers/fields";
-import { parseCSV } from "../lib/csv_manager";
-import { TaskQueue } from "../lib/task";
-import { ShopifyProduct } from "../types/task";
+import { TaskQueue, Tasks, s3 } from "../lib/task";
+import { type Lists } from ".keystone/types";
+import { TaskStatus } from "../types/task";
 
 export const SeoTask: Lists.SeoTask = list({
   access: allowAll,
   ui: { listView: { initialColumns: ["id", "store", "status", "createdAt"] } },
   hooks: {
-    afterOperation: async ({ item, operation, context, resolvedData }) => {
+    beforeOperation: async ({ item, operation }) => {
+      if (operation === "delete") {
+        await s3.deleteObject({ Key: `outputs/SeoTask/${item.id}.csv`, Bucket: BUCKET.name });
+      }
+    },
+    afterOperation: async ({ item, operation, resolvedData, context }) => {
       if (operation === "create") {
         if (!resolvedData?.inputFile.filename?.toString().endsWith(".csv")) return;
-        const res = await context.query.SeoTask.findOne({
-          where: { id: item.id },
-          query: "instruction inputFile { url }"
-        }) as { instruction: string; inputFile: { url: string } };
 
-        const file = await fetch(res.inputFile.url);
-        const csv = await file.blob();
-        const data: ShopifyProduct[] = await parseCSV(await csv.text()) as unknown[] as ShopifyProduct[];
+        TaskQueue.add(Tasks.SeoTask, { id: item.id, type: Tasks.SeoTask });
 
-        TaskQueue.add("SeoTask", {
-          id: item.id,
-          type: 'SeoTask',
-          instruction: res.instruction,
-          data: data
-            .filter((r) => r.Status === "Active" && r.Title.trim() !== "")
-            .map((p) => ({ Title: p.Title }))
-        });
+        await context.query.SeoTask.updateOne({ where: { id: item.id }, data: { status: TaskStatus.pending } })
       }
     }
   },
@@ -78,12 +70,11 @@ export const SeoTask: Lists.SeoTask = list({
         },
       },
     }),
-    outputFile: file({
-      storage: "file_store",
-      ui: {
-        createView: { fieldMode: "hidden" },
-        itemView: { fieldMode: "read", fieldPosition: "sidebar" },
-      },
+    outputFile: virtual({
+      field: graphql.field({
+        type: graphql.String,
+        resolve: async (item) => `${BUCKET.customUrl}/outputs%2FSeoTask%2F${item.id}.csv`
+      })
     }),
 
     // form body

@@ -24,7 +24,31 @@ export async function ask({ prompt, instruction, history }: { history?: ChatMess
     model: OPENAI_MODEL,
     messages: [...instructions, ...(history ?? []), { role: "user", content: prompt }],
   });
-  console.log(JSON.stringify(chatResult))
-  return chatResult.choices[0].message.content;
+  return chatResult;
 }
 
+function chunkArray<T>({ arr, size }: { arr: T[], size: number }) {
+  return Array.from({ length: Math.ceil(arr.length / size) }, (_, i) => arr.slice(i * size, i * size + size));
+}
+
+export async function askAll({ prompts, instruction, chunkSize = 7 }: { instruction: string, prompts: object[], chunkSize?: number }) {
+  const prepared = chunkArray({ arr: prompts, size: chunkSize });
+  const answers = [];
+  for (let i = 0; i < prompts.length; i++) {
+    const prompt = prepared[i];
+    const answer = await ask({ instruction, prompt: JSON.stringify(prompt) });
+    const finishReason = answer.choices[0].finish_reason;
+    if (finishReason !== "stop") {
+      throw `[Completion] Fail reason: "${finishReason}", at ${i} th chunk of size ${chunkSize}`;
+    }
+    answers.push(answer);
+  }
+  return answers
+    .map((a) =>
+      JSON.parse(
+        (a.choices[0].message.content ?? "{}")
+          .replaceAll(/```(json)?/g, "")
+          .trim()
+      )
+    );
+}
