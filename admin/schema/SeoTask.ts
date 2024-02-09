@@ -4,16 +4,17 @@ import {
   checkbox,
   file,
   integer,
-  relationship,
+  json,
   text,
   virtual,
 } from "@keystone-6/core/fields";
 
 import { BUCKET } from "../../src/lib/variables";
 import { createdAtField } from "../helpers/fields";
-import { TaskQueue, Tasks, s3 } from "../lib/task";
 import { type Lists } from ".keystone/types";
 import { TaskStatus } from "../types/task";
+import { s3 } from "../lib/tasks/s3";
+import { TaskQueue, Tasks } from "../lib/tasks/task-queue";
 
 export const SeoTask: Lists.SeoTask = list({
   access: allowAll,
@@ -24,7 +25,7 @@ export const SeoTask: Lists.SeoTask = list({
     }
   },
   hooks: {
-    beforeOperation: async ({ item, operation, inputData }) => {
+    beforeOperation: async ({ item, operation }) => {
       if (operation === "delete") {
         await s3.deleteObject({ Key: `outputs/SeoTask/${item.id}.csv`, Bucket: BUCKET.name });
       }
@@ -32,12 +33,18 @@ export const SeoTask: Lists.SeoTask = list({
     afterOperation: async ({ item, operation, resolvedData, context }) => {
       if (operation === "create") {
         if (!resolvedData?.inputFile.filename?.toString().endsWith(".csv")) return;
-        await context.query.SeoTask.updateOne({ where: { id: item.id }, data: { status: TaskStatus.pending } })
+        await context.query.SeoTask.updateOne({
+          where: { id: item.id },
+          data: { status: TaskStatus.pending },
+        })
       }
       else if (operation === "update") {
         if (item.retry && item.status !== TaskStatus.pending) {
           TaskQueue.add(Tasks.SeoTask, { id: item.id, type: Tasks.SeoTask });
-          await context.query.SeoTask.updateOne({ where: { id: item.id }, data: { status: TaskStatus.pending, retry: false } });
+          await context.query.SeoTask.updateOne({
+            where: { id: item.id },
+            data: { status: TaskStatus.pending, retry: false },
+          });
         }
       }
     }
@@ -53,7 +60,13 @@ export const SeoTask: Lists.SeoTask = list({
         itemView: { fieldMode: "read", fieldPosition: "sidebar" },
       },
     }),
-    retry: checkbox({ ui: { createView: { fieldMode: "hidden" }, itemView: { fieldPosition: "sidebar" } } }),
+    retry: checkbox({
+      ui: {
+        createView: { fieldMode: "hidden" },
+        itemView: { fieldPosition: "sidebar" },
+        description: "Do not retry when already running",
+      }
+    }),
 
     inputFile: file({
       storage: "input_file_storage",
@@ -91,10 +104,6 @@ export const SeoTask: Lists.SeoTask = list({
 
     // form body
     description: text({}),
-    store: relationship({
-      ref: "Store",
-      ui: { itemView: { fieldMode: "read" } },
-    }),
     products: integer({
       ui: { createView: { fieldMode: "hidden" }, itemView: { fieldMode: "read" }, }
     }),
@@ -111,9 +120,10 @@ export const SeoTask: Lists.SeoTask = list({
         },
       }),
     }),
-    logs: text({
+    logs: json({
+      defaultValue: [],
       ui: {
-        displayMode: "textarea",
+        views: "./admin/views/logs",
         itemView: { fieldMode: "read" },
         createView: { fieldMode: "hidden" },
       },

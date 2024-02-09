@@ -14,8 +14,7 @@ import {
   KS_PORT,
 } from "./src/lib/variables";
 import { ask } from "./admin/lib/openai";
-import tk from "tiktoken";
-import { start } from "./admin/lib/task";
+import { start } from "./admin/lib/tasks/task";
 
 
 

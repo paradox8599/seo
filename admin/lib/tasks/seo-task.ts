@@ -1,59 +1,29 @@
 import { KeystoneContext, KeystoneContextFromListTypeInfo } from "@keystone-6/core/types";
-import { S3, S3ClientConfig } from "@aws-sdk/client-s3";
-import { ShopifyProduct, Task, TaskStatus } from "../types/task";
-import { ask } from "./openai";
-import { dumpCSV, parseCSV } from "./csv_manager";
+import { ShopifyProduct, TaskStatus } from "../../types/task";
+import { ask } from "../openai";
+import { dumpCSV, parseCSV } from "../csv_manager";
 import { type Lists } from ".keystone/types";
 
-import { BUCKET } from "../../src/lib/variables";
+import { BUCKET } from "../../../src/lib/variables";
+import { TaskQueue, Tasks } from "./task-queue";
+import { s3 } from "./s3";
+import { chunkArray } from "./task";
 
-export const s3 = new S3({
-  endpoint: BUCKET.endpointUrl,
-  credentials: {
-    accessKeyId: BUCKET.accessKeyId,
-    secretAccessKey: BUCKET.secretAccessKey,
-  }, region: "auto"
-} as S3ClientConfig)
+type SeoTaskContext = KeystoneContextFromListTypeInfo<Lists.SeoTask.TypeInfo>;
 
-export enum Tasks {
-  SeoTask = "SeoTask",
+export async function resetSeoTasks(ctx: KeystoneContext) {
+  const seoTaskIdResults = await (ctx as unknown as SeoTaskContext).query.SeoTask.findMany({
+    where: { status: { in: [TaskStatus.pending, TaskStatus.running] } },
+    query: "id"
+  }) as { id: string }[];
+  const seoTaskIds = seoTaskIdResults.map((r) => r.id);
+  await (ctx as unknown as SeoTaskContext).query.SeoTask.updateMany({
+    data: seoTaskIds.map((id) => ({ where: { id }, data: { status: TaskStatus.idle } }))
+  });
 }
 
-export class TaskQueue {
-  constructor() {
-    throw new Error("Cannot initialize Queue class");
-  }
-
-  static q: { [key: string]: Task[] } = {};
-
-  static get(name: string) {
-    if (!TaskQueue.q[name]) {
-      return [];
-    }
-    return TaskQueue.q[name];
-  }
-
-  static add(name: string, item: Task) {
-    if (!TaskQueue.q[name]) {
-      TaskQueue.q[name] = [];
-    }
-    TaskQueue.q[name].push(item);
-  }
-
-  static consume(name: string) {
-    if (!TaskQueue.q[name]) {
-      return undefined;
-    }
-    return TaskQueue.q[name].shift();
-  }
-}
-
-function chunkArray<T>({ arr, size }: { arr: T[], size: number }) {
-  return Array.from({ length: Math.ceil(arr.length / size) }, (_, i) => arr.slice(i * size, i * size + size));
-}
-
-async function runSeoTask(context: KeystoneContext) {
-  const ctx = context as unknown as KeystoneContextFromListTypeInfo<Lists.SeoTask.TypeInfo>;
+export async function runSeoTask(context: KeystoneContext) {
+  const ctx = context as unknown as SeoTaskContext;
   const task = TaskQueue.consume(Tasks.SeoTask);
   if (!task) return;
   // log
@@ -67,9 +37,15 @@ async function runSeoTask(context: KeystoneContext) {
     })
     await ctx.query.SeoTask.updateOne({
       where: { id: task.id },
-      data: { logs: `${item.logs}\n${logText}` }
+      data: {
+        logs: [
+          ...item.logs,
+          logText,
+        ]
+      }
     })
   }
+
   async function setStatus(status: TaskStatus) {
     await ctx.query.SeoTask.updateOne({
       where: { id: task?.id ?? "" },
@@ -97,13 +73,13 @@ async function runSeoTask(context: KeystoneContext) {
     const chunkSize = 7;
     const preparedProducts = chunkArray({ arr: filteredProducts.map((p) => ({ id: p.id, Title: p.Title })), size: chunkSize });
 
-    console.log(`${filteredProducts.length} products, into ${preparedProducts.length} chunks of ${chunkSize}`);
+    console.log(`${task.id} ${filteredProducts.length} products, into ${preparedProducts.length} chunks of ${chunkSize}`);
 
 
     // start AI tasks
     const answers = [];
     for (let i = 0; i < preparedProducts.length; i++) {
-      console.log(`Generating chunk ${i + 1} of ${preparedProducts.length}`);
+      console.log(`${task.id} Generating chunk ${i + 1} of ${preparedProducts.length}`);
       const products = preparedProducts[i];
       const answer = await ask({ instruction: res.instruction, prompt: JSON.stringify(products) });
       const finishReason = answer.choices[0].finish_reason;
@@ -117,7 +93,6 @@ async function runSeoTask(context: KeystoneContext) {
     // replace original products with new content
     for (const a of answers) {
       const content = a.choices[0].message.content ?? "{}";
-      console.log(content);
       const data = (content).replaceAll(/```(json)?/g, '').trim();
       const chunk = JSON.parse(data) as ShopifyProduct[];
 
@@ -139,37 +114,13 @@ async function runSeoTask(context: KeystoneContext) {
         Body: csvContent,
         ContentType: "text/csv"
       });
-      await setStatus(TaskStatus.success);
-      await log("Successful");
     }
+    await log("Successful");
+    await setStatus(TaskStatus.success);
   }
   catch (e) {
     await log(`${e}`);
     await setStatus(TaskStatus.failure);
-  }
-}
-
-let started = false;
-export async function start(ctx: KeystoneContext) {
-  if (started) return;
-  started = true;
-
-  // reset seo tasks status
-  const seoTaskIdResults = await (ctx as unknown as KeystoneContextFromListTypeInfo<Lists.SeoTask.TypeInfo>).query.SeoTask.findMany({
-    where: { status: { in: [TaskStatus.pending, TaskStatus.running] } },
-    query: "id"
-  }) as { id: string }[];
-  const seoTaskIds = seoTaskIdResults.map((r) => r.id);
-  await (ctx as unknown as KeystoneContextFromListTypeInfo<Lists.SeoTask.TypeInfo>)
-    .query.SeoTask.updateMany({
-      data: seoTaskIds.map((id) => ({ where: { id }, data: { status: TaskStatus.idle } }))
-    });
-
-
-  console.log("AI tasks started");
-  while (true) {
-    await runSeoTask(ctx);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 }
 

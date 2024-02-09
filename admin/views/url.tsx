@@ -3,11 +3,14 @@ import { type FieldProps } from "@keystone-6/core/types";
 import { FieldContainer, FieldLabel } from "@keystone-ui/fields";
 
 import React from "react";
+import { TaskStatus } from "../types/task";
 
 
 
-export const Field = ({ field, value }: FieldProps<typeof controller>) => {
+export const Field = ({ field, value, itemValue }: FieldProps<typeof controller>) => {
   if (value.kind === "create") return <></>;
+  const success = (itemValue as { status: { value: { value: TaskStatus } } }).status.value.value === TaskStatus.success;
+  if (!success) return <></>;
   return (
     <FieldContainer>
       <FieldLabel>{field.label}</FieldLabel>
