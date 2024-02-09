@@ -4,17 +4,15 @@ import { FieldContainer, FieldLabel } from "@keystone-ui/fields";
 
 import React from "react";
 
-
-
 export const Field = ({ field, value }: FieldProps<typeof controller>) => {
   return (
     <FieldContainer>
       <FieldLabel>{field.label}</FieldLabel>
       <div>
-        {(JSON.parse(value) as string[]).map((v, i) => <p key={i.toString()}>{v}</p>)}
+        {(JSON.parse(value) as string[]).map((v, i) => (
+          <p key={i.toString()}>{v}</p>
+        ))}
       </div>
     </FieldContainer>
   );
 };
-
-

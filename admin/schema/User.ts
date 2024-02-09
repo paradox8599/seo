@@ -19,4 +19,3 @@ export const User: Lists.User = list({
     updatedAt: updatedAtField(),
   },
 });
-

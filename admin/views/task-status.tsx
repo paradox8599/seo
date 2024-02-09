@@ -5,7 +5,6 @@ import { FieldContainer, FieldLabel } from "@keystone-ui/fields";
 import React from "react";
 import { TaskStatus } from "../types/task";
 
-
 function Status({ status }: { status: TaskStatus }) {
   const colors = {
     [TaskStatus.idle]: "gray",
@@ -43,4 +42,3 @@ export const Field = ({ field, value }: FieldProps<typeof controller>) => {
 export const Cell: CellComponent = ({ item }) => {
   return <Status status={item.status as TaskStatus} />;
 };
-

@@ -1,7 +1,6 @@
-
 export type Task = {
   id: string;
-  type: 'SeoTask';
+  type: "SeoTask";
 };
 
 export enum TaskStatus {
@@ -20,5 +19,4 @@ export type ShopifyProduct = {
   "SEO Description"?: string;
   "Image Alt Text"?: string;
   Status?: string;
-}
-
+};

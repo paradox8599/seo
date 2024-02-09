@@ -22,23 +22,26 @@ export const SeoTask: Lists.SeoTask = list({
     listView: {
       initialColumns: ["id", "description", "store", "status", "createdAt"],
       initialSort: { field: "createdAt", direction: "DESC" },
-    }
+    },
   },
   hooks: {
     beforeOperation: async ({ item, operation }) => {
       if (operation === "delete") {
-        await s3.deleteObject({ Key: `outputs/SeoTask/${item.id}.csv`, Bucket: BUCKET.name });
+        await s3.deleteObject({
+          Key: `outputs/SeoTask/${item.id}.csv`,
+          Bucket: BUCKET.name,
+        });
       }
     },
     afterOperation: async ({ item, operation, resolvedData, context }) => {
       if (operation === "create") {
-        if (!resolvedData?.inputFile.filename?.toString().endsWith(".csv")) return;
+        if (!resolvedData?.inputFile.filename?.toString().endsWith(".csv"))
+          return;
         await context.query.SeoTask.updateOne({
           where: { id: item.id },
           data: { status: TaskStatus.pending },
-        })
-      }
-      else if (operation === "update") {
+        });
+      } else if (operation === "update") {
         if (item.retry && item.status !== TaskStatus.pending) {
           TaskQueue.add(Tasks.SeoTask, { id: item.id, type: Tasks.SeoTask });
           await context.query.SeoTask.updateOne({
@@ -47,7 +50,7 @@ export const SeoTask: Lists.SeoTask = list({
           });
         }
       }
-    }
+    },
   },
   fields: {
     // sidebar
@@ -65,7 +68,7 @@ export const SeoTask: Lists.SeoTask = list({
         createView: { fieldMode: "hidden" },
         itemView: { fieldPosition: "sidebar" },
         description: "Do not retry when already running",
-      }
+      },
     }),
 
     inputFile: file({
@@ -74,15 +77,14 @@ export const SeoTask: Lists.SeoTask = list({
       hooks: {
         // only allow & require upload when creating
         validateInput: ({ addValidationError, resolvedData, operation }) => {
-          if (operation === 'create') {
+          if (operation === "create") {
             if (
               !resolvedData.inputFile.filename ||
               !resolvedData.inputFile.filesize
             ) {
               addValidationError("Input file is required");
             }
-          }
-          else if (operation === "update") {
+          } else if (operation === "update") {
             if (
               resolvedData.inputFile.filename !== undefined ||
               resolvedData.inputFile.filesize !== undefined
@@ -90,7 +92,6 @@ export const SeoTask: Lists.SeoTask = list({
               addValidationError("Input file cannot be changed");
             }
           }
-
         },
       },
     }),
@@ -98,14 +99,18 @@ export const SeoTask: Lists.SeoTask = list({
       ui: { views: "./admin/views/url", createView: { fieldMode: "hidden" } },
       field: graphql.field({
         type: graphql.String,
-        resolve: async (item) => `${BUCKET.customUrl}/outputs/SeoTask/${item.id}.csv`
-      })
+        resolve: async (item) =>
+          `${BUCKET.customUrl}/outputs/SeoTask/${item.id}.csv`,
+      }),
     }),
 
     // form body
     description: text({}),
     products: integer({
-      ui: { createView: { fieldMode: "hidden" }, itemView: { fieldMode: "read" }, }
+      ui: {
+        createView: { fieldMode: "hidden" },
+        itemView: { fieldMode: "read" },
+      },
     }),
     instruction: virtual({
       field: graphql.field({
@@ -115,7 +120,8 @@ export const SeoTask: Lists.SeoTask = list({
             where: { name: { equals: "SeoTask" } },
             query: "instruction",
           });
-          if (instructions.length !== 1) return "Instruction for [SeoTask] not found";
+          if (instructions.length !== 1)
+            return "Instruction for [SeoTask] not found";
           return instructions[0].instruction;
         },
       }),
@@ -130,4 +136,3 @@ export const SeoTask: Lists.SeoTask = list({
     }),
   },
 });
-

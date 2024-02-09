@@ -15,4 +15,3 @@ export const Instruction: Lists.Instruction = list({
     createdAt: createdAtField(),
   },
 });
-

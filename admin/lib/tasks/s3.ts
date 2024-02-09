@@ -7,6 +7,6 @@ export const s3 = new S3({
   credentials: {
     accessKeyId: BUCKET.accessKeyId,
     secretAccessKey: BUCKET.secretAccessKey,
-  }, region: "auto"
-} as S3ClientConfig)
-
+  },
+  region: "auto",
+} as S3ClientConfig);

@@ -1,4 +1,7 @@
-import { KeystoneContext, KeystoneContextFromListTypeInfo } from "@keystone-6/core/types";
+import {
+  KeystoneContext,
+  KeystoneContextFromListTypeInfo,
+} from "@keystone-6/core/types";
 import { ShopifyProduct, TaskStatus } from "../../types/task";
 import { ask } from "../openai";
 import { dumpCSV, parseCSV } from "../csv_manager";
@@ -12,13 +15,18 @@ import { chunkArray } from "./task";
 type SeoTaskContext = KeystoneContextFromListTypeInfo<Lists.SeoTask.TypeInfo>;
 
 export async function resetSeoTasks(ctx: KeystoneContext) {
-  const seoTaskIdResults = await (ctx as unknown as SeoTaskContext).query.SeoTask.findMany({
+  const seoTaskIdResults = (await (
+    ctx as unknown as SeoTaskContext
+  ).query.SeoTask.findMany({
     where: { status: { in: [TaskStatus.pending, TaskStatus.running] } },
-    query: "id"
-  }) as { id: string }[];
+    query: "id",
+  })) as { id: string }[];
   const seoTaskIds = seoTaskIdResults.map((r) => r.id);
   await (ctx as unknown as SeoTaskContext).query.SeoTask.updateMany({
-    data: seoTaskIds.map((id) => ({ where: { id }, data: { status: TaskStatus.idle } }))
+    data: seoTaskIds.map((id) => ({
+      where: { id },
+      data: { status: TaskStatus.idle },
+    })),
   });
 }
 
@@ -34,58 +42,72 @@ export async function runSeoTask(context: KeystoneContext) {
     const item = await ctx.query.SeoTask.findOne({
       where: { id: task.id },
       query: "logs",
-    })
+    });
     await ctx.query.SeoTask.updateOne({
       where: { id: task.id },
       data: {
-        logs: [
-          ...item.logs,
-          logText,
-        ]
-      }
-    })
+        logs: [...item.logs, logText],
+      },
+    });
   }
 
   async function setStatus(status: TaskStatus) {
     await ctx.query.SeoTask.updateOne({
       where: { id: task?.id ?? "" },
-      data: { status }
-    })
+      data: { status },
+    });
   }
 
   try {
     await setStatus(TaskStatus.running);
     // query stored info
-    const res = await ctx.query.SeoTask.findOne({
+    const res = (await ctx.query.SeoTask.findOne({
       where: { id: task.id },
-      query: "instruction inputFile { url }"
-    }) as { instruction: string; inputFile: { url: string } };
+      query: "instruction inputFile { url }",
+    })) as { instruction: string; inputFile: { url: string } };
     // read csv file
     const file = await fetch(res.inputFile.url);
     const csv = await file.blob();
-    let products: ShopifyProduct[] = await parseCSV(await csv.text()) as ShopifyProduct[];
+    let products: ShopifyProduct[] = (await parseCSV(
+      await csv.text(),
+    )) as ShopifyProduct[];
     // assign id to each product for recognition
-    products = products.map((p, i) => ({ id: i, ...p }))
+    products = products.map((p, i) => ({ id: i, ...p }));
     // filter only active products with names
-    const filteredProducts = products
-      .filter((r) => r.Status?.toLowerCase() === "active" && r.Title.trim() !== "");
+    const filteredProducts = products.filter(
+      (r) => r.Status?.toLowerCase() === "active" && r.Title.trim() !== "",
+    );
     // split products into chunks of 7
     const chunkSize = 7;
-    const preparedProducts = chunkArray({ arr: filteredProducts.map((p) => ({ id: p.id, Title: p.Title })), size: chunkSize });
+    const preparedProducts = chunkArray({
+      arr: filteredProducts.map((p) => ({ id: p.id, Title: p.Title })),
+      size: chunkSize,
+    });
 
-    console.log(`${task.id} ${filteredProducts.length} products, into ${preparedProducts.length} chunks of ${chunkSize}`);
-
+    console.log(
+      `${task.id}` +
+        ` ${filteredProducts.length} products,` +
+        ` into ${preparedProducts.length} chunks of ${chunkSize}`,
+    );
 
     // start AI tasks
     const answers = [];
     for (let i = 0; i < preparedProducts.length; i++) {
-      console.log(`${task.id} Generating chunk ${i + 1} of ${preparedProducts.length}`);
+      console.log(
+        `${task.id} Generating chunk ${i + 1} of ${preparedProducts.length}`,
+      );
       const products = preparedProducts[i];
-      const answer = await ask({ instruction: res.instruction, prompt: JSON.stringify(products) });
+      const answer = await ask({
+        instruction: res.instruction,
+        prompt: JSON.stringify(products),
+      });
       const finishReason = answer.choices[0].finish_reason;
       // abnormal finish reasons
       if (finishReason !== "stop") {
-        throw `Fail reason: "${finishReason}", at ${i} th chunk of size ${chunkSize}.`;
+        throw (
+          `Fail reason: "${finishReason}",` +
+          ` at ${i} th chunk of size ${chunkSize}.`
+        );
       }
       answers.push(answer);
     }
@@ -93,15 +115,17 @@ export async function runSeoTask(context: KeystoneContext) {
     // replace original products with new content
     for (const a of answers) {
       const content = a.choices[0].message.content ?? "{}";
-      const data = (content).replaceAll(/```(json)?/g, '').trim();
+      const data = content.replaceAll(/```(json)?/g, "").trim();
       const chunk = JSON.parse(data) as ShopifyProduct[];
 
       for (const data of chunk) {
         if (data.id === undefined) throw "Invalid AI response: no id.";
-        if (data["SEO Title"] === undefined) throw "Invalid AI response: no SEO Title.";
-        if (data["SEO Description"] === undefined) throw "Invalid AI response: no SEO Description.";
+        if (data["SEO Title"] === undefined)
+          throw "Invalid AI response: no SEO Title.";
+        if (data["SEO Description"] === undefined)
+          throw "Invalid AI response: no SEO Description.";
         const p = products[data.id];
-        products[data.id] = { ...p, ...data, 'Image Alt Text': p['SEO Title'] };
+        products[data.id] = { ...p, ...data, "Image Alt Text": p["SEO Title"] };
         products[data.id].id = undefined;
       }
 
@@ -112,15 +136,13 @@ export async function runSeoTask(context: KeystoneContext) {
         Bucket: BUCKET.name,
         Key: `outputs/SeoTask/${task.id}.csv`,
         Body: csvContent,
-        ContentType: "text/csv"
+        ContentType: "text/csv",
       });
     }
     await log("Successful");
     await setStatus(TaskStatus.success);
-  }
-  catch (e) {
+  } catch (e) {
     await log(`${e}`);
     await setStatus(TaskStatus.failure);
   }
 }
-

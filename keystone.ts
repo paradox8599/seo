@@ -2,7 +2,7 @@ import { config } from "@keystone-6/core";
 import { NextApiRequest, NextApiResponse } from "next";
 
 import { type Context } from ".keystone/types";
-import { type PrismaClient } from ".prisma/client"
+import { type PrismaClient } from ".prisma/client";
 
 import { session, withAuth } from "./admin/auth";
 import { lists } from "./admin/schema/_lists";
@@ -15,8 +15,6 @@ import {
 } from "./src/lib/variables";
 import { ask } from "./admin/lib/openai";
 import { start } from "./admin/lib/tasks/task";
-
-
 
 function withContext<
   F extends (
@@ -33,16 +31,18 @@ function withContext<
   };
 }
 
-
 export default withAuth(
   config({
     server: {
       port: KS_PORT,
       extendExpressApp(app, context) {
-        app.get("/api/example", withContext(context, async (_req, res, _context) => {
-          const chatRes = await ask({ prompt: "why is the sky blue?" });
-          res.json(chatRes);
-        }));
+        app.get(
+          "/api/example",
+          withContext(context, async (_req, res, _context) => {
+            const chatRes = await ask({ prompt: "why is the sky blue?" });
+            res.json(chatRes);
+          }),
+        );
       },
     },
     ui: {
@@ -58,19 +58,19 @@ export default withAuth(
         const prisma = context.sudo().prisma as PrismaClient;
         const count = await prisma.instruction.count();
         if (count === 0) {
-
           await prisma.instruction.createMany({
             data: [
               {
                 name: "SeoTask",
-                instruction: 'You are a professional, Google-aligned SEO expert for shopify products. You will receive a list of product information. In this list, each product will have a title. Generate "SEO Title" (50-60 words, using a format of adjective + attribute) and "SEO Description" (150-160 words) for each based on the product title. Append the generated fields to each product and keep other fields unchanged. Your response should be in a json array and strictly follow the type hint: `{"id": number, "SEO Title": string, "SEO Description": string}[]`, with no unnecessary space or new line. Thank you and I will tip you $200',
-              }
-            ]
+                instruction:
+                  'You are a professional, Google-aligned SEO expert for shopify products. You will receive a list of product information. In this list, each product will have a title. Generate "SEO Title" (50-60 words, using a format of adjective + attribute) and "SEO Description" (150-160 words) for each based on the product title. Append the generated fields to each product and keep other fields unchanged. Your response should be in a json array and strictly follow the type hint: `{"id": number, "SEO Title": string, "SEO Description": string}[]`, with no unnecessary space or new line. Thank you and I will tip you $200',
+              },
+            ],
           });
         }
         // NOTE: start AI tasks
         start(context);
-      }
+      },
     },
     storage: {
       input_file_storage: {
