@@ -12,7 +12,7 @@
     "start:nx": "next start",
     "build:ks": "keystone build",
     "start:ks": "keystone start",
-    "push": "keystone prisma db push",
+    "push": "keystone prisma db push --accept-data-loss",
     "reset": "keystone prisma db push --force-reset"
   },
   "dependencies": {
