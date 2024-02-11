@@ -12,9 +12,14 @@ export const Product: Lists.Product = list({
       initialSort: { field: "updatedAt", direction: "DESC" },
       initialColumns: ["title", "SEOTitle", "SEODescription", "status"],
     },
+    hideCreate: true,
   },
   fields: {
-    shopifyId: text({ validation: { isRequired: true }, isIndexed: "unique" }),
+    shopifyId: text({
+      validation: { isRequired: true },
+      isIndexed: "unique",
+      ui: { itemView: { fieldMode: "read", fieldPosition: "sidebar" } },
+    }),
     title: text({ validation: { isRequired: true } }),
     SEOTitle: text({}),
     SEODescription: text({ ui: { displayMode: "textarea" } }),
