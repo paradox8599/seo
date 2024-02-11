@@ -14,6 +14,11 @@ export const Field = ({
   const success =
     (itemValue as { status: { value: { value: TaskStatus } } }).status.value
       .value === TaskStatus.success;
+  // const dlName = (
+  //   itemValue as {
+  //     inputFile: { value: { data: { filename: string } } };
+  //   }
+  // ).inputFile.value.data.filename.replace(/-[\w\d]+.csv$/, ".csv");
   if (!success) return <></>;
   return (
     <FieldContainer>

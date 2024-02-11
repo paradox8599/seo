@@ -13,8 +13,8 @@ import {
   GRAPHQL_PATH,
   KS_PORT,
 } from "./src/lib/variables";
-import { ask } from "./admin/lib/openai";
 import { start } from "./admin/lib/tasks/task";
+import { fetchAllProducts } from "./admin/routes/shopify";
 
 function withContext<
   F extends (
@@ -36,12 +36,10 @@ export default withAuth(
     server: {
       port: KS_PORT,
       extendExpressApp(app, context) {
-        app.get(
-          "/api/example",
-          withContext(context, async (_req, res, _context) => {
-            const chatRes = await ask({ prompt: "why is the sky blue?" });
-            res.json(chatRes);
-          }),
+        // fetch store products from shopify
+        app.post(
+          "/api/store/fetch-all-products",
+          withContext(context, fetchAllProducts),
         );
       },
     },

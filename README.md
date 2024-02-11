@@ -27,6 +27,8 @@ OPENAI_API_KEY=""
 OPENAI_ENDPOINT=""
 # gpt-3.5-turbo if using gemini
 OPENAI_MODEL="gpt-3.5-turbo"
+
+SHOPIFY_API_VERSION="2024-01"
 ```
 
 ## Setup
