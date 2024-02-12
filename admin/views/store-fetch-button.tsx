@@ -1,17 +1,13 @@
 import { type controller } from "@keystone-6/core/fields/types/integer/views";
 import { type FieldProps } from "@keystone-6/core/types";
-import { FieldContainer, FieldLabel } from "@keystone-ui/fields";
+import { FieldContainer } from "@keystone-ui/fields";
 import { Button } from "@keystone-ui/button";
 
 import React from "react";
 
 type BtnText = "Fetch Products" | "Fetching";
 
-export const Field = ({
-  field,
-  value,
-  itemValue,
-}: FieldProps<typeof controller>) => {
+export const Field = ({ value, itemValue }: FieldProps<typeof controller>) => {
   const [btn, setBtn] = React.useState<{ disabled: boolean; text: BtnText }>({
     disabled: false,
     text: "Fetch Products",
@@ -21,7 +17,6 @@ export const Field = ({
     .value.id;
   return (
     <FieldContainer>
-      <FieldLabel>{field.label}</FieldLabel>
       <Button
         disabled={btn.disabled}
         onClick={async () => {
