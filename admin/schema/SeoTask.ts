@@ -33,13 +33,13 @@ export const SeoTask: Lists.SeoTask = list({
       },
       update: async ({ item, context }) => {
         if (item.retry) {
-          if (item.status !== TaskStatus.pending) {
-            TaskQueue.add(Tasks.SeoTask, { id: item.id, type: Tasks.SeoTask });
-          }
           await context.query.SeoTask.updateOne({
             where: { id: item.id },
             data: { status: TaskStatus.pending, retry: false },
           });
+          if (item.status !== TaskStatus.pending) {
+            TaskQueue.add(Tasks.SeoTask, { id: item.id, type: Tasks.SeoTask });
+          }
         }
       },
     },
@@ -66,6 +66,13 @@ export const SeoTask: Lists.SeoTask = list({
     store: relationship({
       ref: "Store",
       ui: { itemView: { fieldMode: "read", fieldPosition: "sidebar" } },
+    }),
+    products: integer({
+      ui: {
+        views: "./admin/views/seo-task-products-url",
+        createView: { fieldMode: "hidden" },
+        itemView: { fieldPosition: "sidebar" },
+      },
     }),
     category: text({
       defaultValue: "None",

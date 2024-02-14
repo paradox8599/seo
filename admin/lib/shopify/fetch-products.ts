@@ -26,11 +26,12 @@ export async function fetchAllProducts(
           { name: { equals: storeIdentifier } },
         ],
       },
-      query: "id name adminAccessToken",
+      query: "id name adminAccessToken version",
     })) as unknown as {
       id: string;
       name: string;
       adminAccessToken: string;
+      version: number;
     }[];
 
     if (stores.length !== 1) {
@@ -85,6 +86,10 @@ export async function fetchAllProducts(
       };
     });
 
+    // await prisma.product.deleteMany({
+    //   where: { store: { id: { equals: store.id } } },
+    // });
+
     // upsert
     await prisma.store.update({
       where: { id: store.id },
@@ -101,6 +106,7 @@ export async function fetchAllProducts(
                 SEOTitle: p.seo.title ?? "",
                 SEODescription: p.seo.description ?? "",
                 raw: { ...p, dbId: undefined },
+                version: store.version,
               };
               return {
                 create: data,

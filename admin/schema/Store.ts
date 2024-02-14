@@ -35,6 +35,16 @@ export const Store: Lists.Store = list({
         views: "./admin/views/store-fetch-button",
       },
     }),
+    viewProducts: integer({
+      ui: {
+        views: "./admin/views/store-products-url",
+        itemView: {
+          fieldMode: "read",
+          fieldPosition: "sidebar",
+        },
+        createView: { fieldMode: "hidden" },
+      },
+    }),
     name: text({ validation: { isRequired: true } }),
     adminAccessToken: text({ validation: { isRequired: true } }),
     version: integer({
@@ -52,6 +62,7 @@ export const Store: Lists.Store = list({
         createView: { fieldMode: "hidden" },
       },
     }),
+
     createdAt: createdAtField(),
     updatedAt: updatedAtField(),
   },

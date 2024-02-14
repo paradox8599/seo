@@ -7,31 +7,32 @@ import React from "react";
 
 type BtnText = "Fetch Products" | "Fetching";
 
-export const Field = ({ value, itemValue }: FieldProps<typeof controller>) => {
+export const Field = ({ value }: FieldProps<typeof controller>) => {
   const [btn, setBtn] = React.useState<{ disabled: boolean; text: BtnText }>({
     disabled: false,
     text: "Fetch Products",
   });
   if (value.kind === "create") return <></>;
-  const id = (itemValue as { products: { value: { id: string } } }).products
-    .value.id;
   return (
     <FieldContainer>
       <Button
         disabled={btn.disabled}
         onClick={async () => {
           setBtn({ text: "Fetching", disabled: true });
-          const res = await fetch(`/api/store/fetch-all-products?id=${id}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-          });
+          const res = await fetch(
+            `/api/store/fetch-all-products?id=${window.location.pathname.split("/")[2]}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+            },
+          );
           const data = await res.json();
+          setBtn({ text: "Fetch Products", disabled: false });
           if (data.error) {
             console.log(data.error);
             alert(JSON.stringify(data.error));
             return;
           }
-          setBtn({ text: "Fetch Products", disabled: false });
           if (data.message === "ok") {
             alert("Success");
             return;

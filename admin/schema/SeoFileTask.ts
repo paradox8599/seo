@@ -33,26 +33,33 @@ export const SeoFileTask: Lists.SeoFileTask = list({
         });
       }
     },
-    afterOperation: async ({ item, operation, resolvedData, context }) => {
-      if (operation === "create") {
+    afterOperation: {
+      create: async ({ item, resolvedData, context }) => {
         if (!resolvedData?.inputFile.filename?.toString().endsWith(".csv"))
           return;
         await context.query.SeoFileTask.updateOne({
           where: { id: item.id },
           data: { status: TaskStatus.pending },
         });
-      } else if (operation === "update") {
-        if (item.retry && item.status !== TaskStatus.pending) {
-          TaskQueue.add(Tasks.SeoFileTask, {
-            id: item.id,
-            type: Tasks.SeoFileTask,
-          });
+        TaskQueue.add(Tasks.SeoFileTask, {
+          id: item.id,
+          type: Tasks.SeoFileTask,
+        });
+      },
+      update: async ({ item, context }) => {
+        if (item.retry) {
           await context.query.SeoFileTask.updateOne({
             where: { id: item.id },
             data: { status: TaskStatus.pending, retry: false },
           });
+          if (item.status !== TaskStatus.pending) {
+            TaskQueue.add(Tasks.SeoFileTask, {
+              id: item.id,
+              type: Tasks.SeoFileTask,
+            });
+          }
         }
-      }
+      },
     },
   },
   fields: {

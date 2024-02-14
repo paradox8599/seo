@@ -114,7 +114,6 @@ export async function runSeoFileTask(context: KeystoneContext) {
       const chunk = JSON.parse(data) as ShopifyProduct[];
 
       for (const data of chunk) {
-        console.log(data);
         if (data.id === undefined) throw "Invalid AI response: no id.";
         if (data["SEO Title"] === undefined)
           throw "Invalid AI response: no SEO Title.";
