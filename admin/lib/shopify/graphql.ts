@@ -1,13 +1,14 @@
 import { SHOPIFY_API_VERSION } from "../../../src/lib/variables";
+import { ShopifyProduct } from "../../types/task";
 
 export async function shopifyGQL({
   store,
-  adminAcessToken,
+  adminAccessToken,
   query,
 }: {
   store: string;
   query: string;
-  adminAcessToken: string;
+  adminAccessToken: string;
 }) {
   return await fetch(
     `https://${store}.myshopify.com/admin/api/${SHOPIFY_API_VERSION}/graphql.json`,
@@ -15,7 +16,7 @@ export async function shopifyGQL({
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-Shopify-Access-Token": adminAcessToken,
+        "X-Shopify-Access-Token": adminAccessToken,
       },
       body: JSON.stringify({ query }),
     },
@@ -24,18 +25,18 @@ export async function shopifyGQL({
 
 export async function getProducts({
   store,
-  adminAcessToken,
+  adminAccessToken,
   first,
   after,
 }: {
   store: string;
-  adminAcessToken: string;
+  adminAccessToken: string;
   first: number;
   after?: string;
 }) {
   return await shopifyGQL({
     store,
-    adminAcessToken,
+    adminAccessToken,
     query: /* GRAPHQL */ `
       query {
         products ( first: ${first}, after: ${after ? `"${after}"` : "null"} ) {
@@ -52,5 +53,38 @@ export async function getProducts({
       .replaceAll(/\n/g, " ")
       .replaceAll(/\ +/g, " ")
       .trim(),
+  });
+}
+
+export async function pushProduct({
+  store,
+  adminAccessToken,
+  product,
+}: {
+  store: string;
+  adminAccessToken: string;
+  product: {
+    shopifyId: string;
+    SEOTitle: string;
+    SEODescription: string;
+    store: { name: string; adminAccessToken: string };
+  };
+}) {
+  return await shopifyGQL({
+    store,
+    adminAccessToken,
+    query: /* GRAPHQL */ `
+      mutation {
+        productUpdate (
+          input: {
+            id: "${product.shopifyId}",
+            seo: {
+              title: "${product.SEOTitle}",
+              description: "${product.SEODescription}"
+            }
+          }
+        ) { product { id } }
+      }
+    `,
   });
 }

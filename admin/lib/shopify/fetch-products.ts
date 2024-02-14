@@ -49,7 +49,7 @@ export async function fetchAllProducts(
       console.log("fetching after:", after);
       const resp = await getProducts({
         store: store.name,
-        adminAcessToken: store.adminAccessToken,
+        adminAccessToken: store.adminAccessToken,
         first: 250,
         after,
       });

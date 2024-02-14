@@ -1,6 +1,12 @@
 import { graphql, list } from "@keystone-6/core";
 import { allowAll } from "@keystone-6/core/access";
-import { integer, json, relationship, text, virtual } from "@keystone-6/core/fields";
+import {
+  integer,
+  json,
+  relationship,
+  text,
+  virtual,
+} from "@keystone-6/core/fields";
 
 import { type Lists } from ".keystone/types";
 import { createdAtField, updatedAtField } from "../helpers/fields";
@@ -61,6 +67,12 @@ export const Product: Lists.Product = list({
     status: text({
       validation: { isRequired: true },
       ui: { itemView: { fieldPosition: "sidebar", fieldMode: "read" } },
+    }),
+    push: integer({
+      ui: {
+        views: "./admin/views/product-push-button",
+        createView: { fieldMode: "hidden" },
+      },
     }),
     createdAt: createdAtField(),
     updatedAt: updatedAtField(),
