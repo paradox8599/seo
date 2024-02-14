@@ -1,6 +1,6 @@
 import { graphql, list } from "@keystone-6/core";
 import { allowAll } from "@keystone-6/core/access";
-import { relationship, text, virtual } from "@keystone-6/core/fields";
+import { json, relationship, text, virtual } from "@keystone-6/core/fields";
 
 import { type Lists } from ".keystone/types";
 import { createdAtField, updatedAtField } from "../helpers/fields";
@@ -10,7 +10,14 @@ export const Product: Lists.Product = list({
   ui: {
     listView: {
       initialSort: { field: "updatedAt", direction: "DESC" },
-      initialColumns: ["title", "SEOTitle", "SEODescription", "status"],
+      initialColumns: [
+        "title",
+        "category",
+        "SEOTitle",
+        "SEODescription",
+        "store",
+        "status",
+      ],
     },
     hideCreate: true,
   },
@@ -20,7 +27,13 @@ export const Product: Lists.Product = list({
       isIndexed: "unique",
       ui: { itemView: { fieldMode: "read", fieldPosition: "sidebar" } },
     }),
-    title: text({ validation: { isRequired: true } }),
+    title: text({
+      validation: { isRequired: true },
+      ui: { itemView: { fieldMode: "read" } },
+    }),
+    category: text({
+      ui: { itemView: { fieldMode: "read" } },
+    }),
     SEOTitle: text({}),
     SEODescription: text({ ui: { displayMode: "textarea" } }),
     ImgAltText: virtual({
@@ -29,6 +42,9 @@ export const Product: Lists.Product = list({
         type: graphql.String,
         resolve: (item) => item.SEOTitle,
       }),
+    }),
+    raw: json({
+      ui: { itemView: { fieldMode: "read" } },
     }),
     store: relationship({
       ref: "Store.products",

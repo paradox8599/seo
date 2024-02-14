@@ -14,7 +14,7 @@ import {
   KS_PORT,
 } from "./src/lib/variables";
 import { start } from "./admin/lib/tasks/task";
-import { fetchAllProducts } from "./admin/routes/shopify";
+import { fetchAllProductsAPI } from "./admin/routes/shopify";
 
 function withContext<
   F extends (
@@ -39,7 +39,7 @@ export default withAuth(
         // fetch store products from shopify
         app.post(
           "/api/store/fetch-all-products",
-          withContext(context, fetchAllProducts),
+          withContext(context, fetchAllProductsAPI),
         );
       },
     },

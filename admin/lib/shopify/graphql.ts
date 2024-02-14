@@ -40,9 +40,12 @@ export async function getProducts({
       query {
         products ( first: ${first}, after: ${after ? `"${after}"` : "null"} ) {
           pageInfo { endCursor hasNextPage }
-          edges { node {
-            id title status seo { title description }
-          } }
+          edges {
+            node {
+              id title status seo { title description }
+              productCategory { productTaxonomyNode { fullName } }
+            }
+          }
         }
       }
     `
