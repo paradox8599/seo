@@ -2,6 +2,7 @@ import { Task } from "../../types/task";
 
 export enum Tasks {
   SeoTask = "SeoTask",
+  SeoFileTask = "SeoFileTask",
 }
 
 export class TaskQueue {

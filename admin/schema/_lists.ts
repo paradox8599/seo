@@ -1,5 +1,6 @@
 import { Instruction } from "./Instruction";
 import { Product } from "./Products";
+import { SeoFileTask } from "./SeoFileTask";
 import { SeoTask } from "./SeoTask";
 import { Store } from "./Store";
 import { User } from "./User";
@@ -10,5 +11,6 @@ export const lists: Lists = {
   Store,
   Product,
   SeoTask,
+  SeoFileTask,
   Instruction,
 };

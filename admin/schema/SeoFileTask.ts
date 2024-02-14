@@ -2,19 +2,21 @@ import { graphql, list } from "@keystone-6/core";
 import { allowAll } from "@keystone-6/core/access";
 import {
   checkbox,
+  file,
   integer,
   json,
-  relationship,
   text,
   virtual,
 } from "@keystone-6/core/fields";
 
+import { BUCKET } from "../../src/lib/variables";
 import { createdAtField } from "../helpers/fields";
 import { type Lists } from ".keystone/types";
 import { TaskStatus } from "../types/task";
+import { s3 } from "../lib/tasks/s3";
 import { TaskQueue, Tasks } from "../lib/tasks/task-queue";
 
-export const SeoTask: Lists.SeoTask = list({
+export const SeoFileTask: Lists.SeoFileTask = list({
   access: allowAll,
   ui: {
     listView: {
@@ -23,25 +25,34 @@ export const SeoTask: Lists.SeoTask = list({
     },
   },
   hooks: {
-    afterOperation: {
-      create: async ({ item, context }) => {
-        await context.query.SeoTask.updateOne({
+    beforeOperation: async ({ item, operation }) => {
+      if (operation === "delete") {
+        await s3.deleteObject({
+          Key: `outputs/SeoTask/${item.id}.csv`,
+          Bucket: BUCKET.name,
+        });
+      }
+    },
+    afterOperation: async ({ item, operation, resolvedData, context }) => {
+      if (operation === "create") {
+        if (!resolvedData?.inputFile.filename?.toString().endsWith(".csv"))
+          return;
+        await context.query.SeoFileTask.updateOne({
           where: { id: item.id },
           data: { status: TaskStatus.pending },
         });
-        TaskQueue.add(Tasks.SeoTask, { id: item.id, type: Tasks.SeoTask });
-      },
-      update: async ({ item, context }) => {
-        if (item.retry) {
-          if (item.status !== TaskStatus.pending) {
-            TaskQueue.add(Tasks.SeoTask, { id: item.id, type: Tasks.SeoTask });
-          }
-          await context.query.SeoTask.updateOne({
+      } else if (operation === "update") {
+        if (item.retry && item.status !== TaskStatus.pending) {
+          TaskQueue.add(Tasks.SeoFileTask, {
+            id: item.id,
+            type: Tasks.SeoFileTask,
+          });
+          await context.query.SeoFileTask.updateOne({
             where: { id: item.id },
             data: { status: TaskStatus.pending, retry: false },
           });
         }
-      },
+      }
     },
   },
   fields: {
@@ -61,28 +72,49 @@ export const SeoTask: Lists.SeoTask = list({
         itemView: { fieldPosition: "sidebar" },
         description: "Do not retry when already running",
       },
-      hooks: {},
     }),
-    store: relationship({
-      ref: "Store",
-      ui: { itemView: { fieldMode: "read", fieldPosition: "sidebar" } },
-    }),
-    category: text({
-      defaultValue: "None",
-      ui: {
-        // views: "./admin/views/category-select"
-        itemView: { fieldMode: "read" },
+
+    inputFile: file({
+      storage: "input_file_storage",
+      ui: { itemView: { fieldMode: "edit", fieldPosition: "form" } },
+      hooks: {
+        // only allow & require upload when creating
+        validateInput: ({ addValidationError, resolvedData, operation }) => {
+          if (operation === "create") {
+            if (
+              !resolvedData.inputFile.filename ||
+              !resolvedData.inputFile.filesize
+            ) {
+              addValidationError("Input file is required");
+            }
+          } else if (operation === "update") {
+            if (
+              resolvedData.inputFile.filename !== undefined ||
+              resolvedData.inputFile.filesize !== undefined
+            ) {
+              addValidationError("Input file cannot be changed");
+            }
+          }
+        },
       },
+    }),
+    outputFile: virtual({
+      ui: { views: "./admin/views/url", createView: { fieldMode: "hidden" } },
+      field: graphql.field({
+        type: graphql.String,
+        resolve: async (item) =>
+          `${BUCKET.customUrl}/outputs/SeoTask/${item.id}.csv`,
+      }),
     }),
 
     // form body
-    version: integer({
+    description: text({}),
+    products: integer({
       ui: {
         createView: { fieldMode: "hidden" },
         itemView: { fieldMode: "read" },
       },
     }),
-    description: text({}),
     instruction: virtual({
       field: graphql.field({
         type: graphql.String,

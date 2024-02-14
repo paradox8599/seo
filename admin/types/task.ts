@@ -1,6 +1,8 @@
+import { Tasks } from "../lib/tasks/task-queue";
+
 export type Task = {
   id: string;
-  type: "SeoTask";
+  type: Tasks;
 };
 
 export enum TaskStatus {
@@ -13,10 +15,11 @@ export enum TaskStatus {
 }
 
 export type ShopifyProduct = {
-  id?: number;
+  id?: string;
   Title: string;
   "SEO Title"?: string;
   "SEO Description"?: string;
   "Image Alt Text"?: string;
   Status?: string;
+  version?: number;
 };

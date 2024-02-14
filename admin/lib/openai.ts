@@ -51,37 +51,43 @@ export async function ask({
   return chatResult;
 }
 
-// function chunkArray<T>({ arr, size }: { arr: T[]; size: number }) {
-//   return Array.from({ length: Math.ceil(arr.length / size) }, (_, i) =>
-//     arr.slice(i * size, i * size + size),
-//   );
-// }
-//
-// export async function askAll({
-//   prompts,
-//   instruction,
-//   chunkSize = 7,
-// }: {
-//   instruction: string;
-//   prompts: object[];
-//   chunkSize?: number;
-// }) {
-//   const prepared = chunkArray({ arr: prompts, size: chunkSize });
-//   const answers = [];
-//   for (let i = 0; i < prompts.length; i++) {
-//     const prompt = prepared[i];
-//     const answer = await ask({ instruction, prompt: JSON.stringify(prompt) });
-//     const finishReason = answer.choices[0].finish_reason;
-//     if (finishReason !== "stop") {
-//       throw `[Completion] Fail reason: "${finishReason}", at ${i} th chunk of size ${chunkSize}`;
-//     }
-//     answers.push(answer);
-//   }
-//   return answers.map((a) =>
-//     JSON.parse(
-//       (a.choices[0].message.content ?? "{}")
-//         .replaceAll(/```(json)?/g, "")
-//         .trim(),
-//     ),
-//   );
-// }
+function chunkArray<T>({ arr, size }: { arr: T[]; size: number }) {
+  return Array.from({ length: Math.ceil(arr.length / size) }, (_, i) =>
+    arr.slice(i * size, i * size + size),
+  );
+}
+
+export async function askAll({
+  prompts,
+  instruction,
+  chunkSize = 7,
+}: {
+  instruction: string;
+  prompts: object[];
+  chunkSize?: number;
+}): Promise<unknown[]> {
+  const prepared = chunkArray({ arr: prompts, size: chunkSize });
+  console.log(
+    `${prompts.length} items, into ${prepared.length} chunks of ${chunkSize}`,
+  );
+  const answers = [];
+  for (let i = 0; i < prepared.length; i++) {
+    const prompt = prepared[i];
+    const answer = await ask({ instruction, prompt: JSON.stringify(prompt) });
+    const finishReason = answer.choices[0].finish_reason;
+    if (finishReason !== "stop") {
+      throw (
+        `[Completion] Fail reason: "${finishReason}",` +
+        ` at ${i} th chunk of size ${chunkSize}`
+      );
+    }
+    answers.push(answer);
+  }
+  return answers.map((a) =>
+    JSON.parse(
+      (a.choices[0].message.content ?? "{}")
+        .replaceAll(/```(json)?/g, "")
+        .trim(),
+    ),
+  );
+}
