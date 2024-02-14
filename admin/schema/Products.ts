@@ -18,6 +18,7 @@ export const Product: Lists.Product = list({
         "store",
         "status",
       ],
+      pageSize: 500,
     },
     hideCreate: true,
   },

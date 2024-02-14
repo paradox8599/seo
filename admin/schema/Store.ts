@@ -4,6 +4,7 @@ import { integer, relationship, text } from "@keystone-6/core/fields";
 
 import { createdAtField, updatedAtField } from "../helpers/fields";
 import { type Lists } from ".keystone/types";
+import { fetchAllProducts } from "../lib/shopify/fetch-products";
 
 export const Store: Lists.Store = list({
   access: allowAll,
@@ -12,6 +13,18 @@ export const Store: Lists.Store = list({
       initialColumns: ["name", "createdAt", "updatedAt"],
       initialSort: { field: "updatedAt", direction: "DESC" },
       pageSize: 50,
+    },
+  },
+  hooks: {
+    beforeOperation: {
+      delete: async ({ item, context }) => {
+        await context.prisma.product.deleteMany({
+          where: { store: { id: { equals: item.id } } },
+        });
+      },
+    },
+    afterOperation: {
+      create: ({ item, context }) => fetchAllProducts(item.id, context),
     },
   },
   fields: {
