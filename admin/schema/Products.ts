@@ -1,6 +1,6 @@
 import { graphql, list } from "@keystone-6/core";
 import { allowAll } from "@keystone-6/core/access";
-import { json, relationship, text, virtual } from "@keystone-6/core/fields";
+import { integer, json, relationship, text, virtual } from "@keystone-6/core/fields";
 
 import { type Lists } from ".keystone/types";
 import { createdAtField, updatedAtField } from "../helpers/fields";
@@ -46,6 +46,13 @@ export const Product: Lists.Product = list({
     }),
     raw: json({
       ui: { itemView: { fieldMode: "read" } },
+    }),
+    version: integer({
+      defaultValue: 0,
+      ui: {
+        createView: { fieldMode: "hidden" },
+        itemView: { fieldMode: "read", fieldPosition: "sidebar" },
+      },
     }),
     store: relationship({
       ref: "Store.products",

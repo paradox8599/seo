@@ -37,6 +37,13 @@ export const Store: Lists.Store = list({
     }),
     name: text({ validation: { isRequired: true } }),
     adminAccessToken: text({ validation: { isRequired: true } }),
+    version: integer({
+      defaultValue: 0,
+      ui: {
+        createView: { fieldMode: "hidden" },
+        itemView: { fieldMode: "read", fieldPosition: "sidebar" },
+      },
+    }),
     products: relationship({
       ref: "Product.store",
       many: true,
