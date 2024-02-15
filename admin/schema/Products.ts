@@ -72,6 +72,7 @@ export const Product: Lists.Product = list({
       ui: {
         views: "./admin/views/product-push-button",
         createView: { fieldMode: "hidden" },
+        itemView: { fieldPosition: "sidebar" },
       },
     }),
     createdAt: createdAtField(),

@@ -14,7 +14,11 @@ import {
   KS_PORT,
 } from "./src/lib/variables";
 import { start } from "./admin/lib/tasks/task";
-import { fetchAllProductsAPI, pushProductAPI } from "./admin/routes/shopify";
+import {
+  fetchAllProductsAPI,
+  pushProductAPI,
+  pushSEOTaskProductAPI,
+} from "./admin/routes/shopify";
 
 function withContext<
   F extends (
@@ -43,6 +47,11 @@ export default withAuth(
         );
         // push product
         app.post("/api/product/push", withContext(context, pushProductAPI));
+        // push task products
+        app.post(
+          "/api/task/push-products",
+          withContext(context, pushSEOTaskProductAPI),
+        );
       },
     },
     ui: {
@@ -63,7 +72,7 @@ export default withAuth(
               {
                 name: "SeoTask",
                 instruction:
-                  'You are a professional, Google-aligned SEO expert for shopify products. You will receive a list of product information. In this list, each product will have a title. Generate "SEO Title" (50-60 words, using a format of adjective + attribute) and "SEO Description" (150-160 words) for each based on the product title. Append the generated fields to each product and keep other fields unchanged. Your response should be in a json array and strictly follow the type hint: `{"id": string, "SEO Title": string, "SEO Description": string}[]`, with no unnecessary space or new line. Thank you and I will tip you $200',
+                  'You are a professional, Google-aligned SEO expert for shopify products. You will receive a list of product information. In this list, each product will have a title. Generate SEOTitle (50-60 words, using a format of adjective + attribute) and SEODescription (150-160 words) for each based on the product title. Append the generated fields to each product and keep other fields unchanged. Your response should be in a json array and strictly follow the type hint: `{"id": string, "SEOTitle": string, "SEODescription": string}[]`, with no unnecessary space or new line. Thank you and I will tip you $200',
               },
             ],
           });

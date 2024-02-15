@@ -14,12 +14,20 @@ export enum TaskStatus {
   failure = 5,
 }
 
-export type ShopifyProduct = {
+export type ShopifyCSVProduct = {
   id?: string;
   Title: string;
-  "SEO Title"?: string;
-  "SEO Description"?: string;
+  "SEO Title": string;
+  "SEO Description": string;
   "Image Alt Text"?: string;
-  Status?: string;
+  Status: string;
+};
+
+export type ShopifyProduct = {
+  id?: string;
+  title?: string;
+  SEOTitle?: string;
+  SEODescription?: string;
+  status?: string;
   version?: number;
 };

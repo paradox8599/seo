@@ -58,7 +58,7 @@ export const Store: Lists.Store = list({
       ref: "Product.store",
       many: true,
       ui: {
-        itemView: { fieldMode: "read" },
+        itemView: { fieldMode: "hidden" },
         createView: { fieldMode: "hidden" },
       },
     }),

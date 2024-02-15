@@ -1,12 +1,15 @@
 import { KeystoneContext } from "@keystone-6/core/types";
-import { ShopifyProduct, TaskStatus } from "../../types/task";
-import { ask } from "../openai";
+import {
+  ShopifyCSVProduct,
+  ShopifyProduct,
+  TaskStatus,
+} from "../../types/task";
 import { dumpCSV, parseCSV } from "../csv_manager";
+import { askAll } from "../openai";
 
 import { BUCKET } from "../../../src/lib/variables";
-import { TaskQueue, Tasks } from "./task-queue";
 import { s3 } from "./s3";
-import { chunkArray } from "./task";
+import { TaskQueue, Tasks } from "./task-queue";
 import { type Context } from ".keystone/types";
 
 export async function resetSeoFileTasks(ctx: KeystoneContext) {
@@ -63,73 +66,61 @@ export async function runSeoFileTask(context: KeystoneContext) {
     // read csv file
     const file = await fetch(res.inputFile.url);
     const csv = await file.blob();
-    let products: ShopifyProduct[] = (await parseCSV(
+    const csvProducts = (await parseCSV(
       await csv.text(),
-    )) as ShopifyProduct[];
-    // assign id to each product for recognition
-    products = products.map((p, i) => ({ id: `${i}`, ...p }));
+    )) as ShopifyCSVProduct[];
+    const products: ShopifyProduct[] = csvProducts.map((p, i) => ({
+      id: `${i}`,
+      title: p.Title ?? "",
+      SEOTitle: p["SEO Title"],
+      SEODescription: p["SEO Description"],
+      status: p.Status,
+    }));
     // filter only active products with names
-    const filteredProducts = products.filter(
-      (r) => r.Status?.toLowerCase() === "active" && r.Title.trim() !== "",
-    );
-    // split products into chunks of 7
-    const chunkSize = 7;
-    const preparedProducts = chunkArray({
-      arr: filteredProducts.map((p) => ({ id: p.id, Title: p.Title })),
-      size: chunkSize,
-    });
+    const filteredProducts = products
+      .filter(
+        (r) => r.status?.toLowerCase() === "active" && r.title?.trim() !== "",
+      )
+      .map((p) => ({
+        id: p.id,
+        title: p.title,
+      }));
 
-    console.log(
-      `${task.id}` +
-        ` ${filteredProducts.length} products,` +
-        ` into ${preparedProducts.length} chunks of ${chunkSize}`,
-    );
-
-    // start AI tasks
-    const answers = [];
-    for (let i = 0; i < preparedProducts.length; i++) {
-      console.log(
-        `${task.id} Generating chunk ${i + 1} of ${preparedProducts.length}`,
-      );
-      const products = preparedProducts[i];
-      const answer = await ask({
+    const ans = (
+      await askAll({
         instruction: res.instruction,
-        prompt: JSON.stringify(products),
-      });
-      const finishReason = answer.choices[0].finish_reason;
-      // abnormal finish reasons
-      if (finishReason !== "stop") {
-        throw (
-          `Fail reason: "${finishReason}",` +
-          ` at ${i} th chunk of size ${chunkSize}.`
-        );
-      }
-      answers.push(answer);
-    }
-
+        prompts: filteredProducts,
+      })
+    ).flat() as { id: string; SEOTitle: string; SEODescription: string }[];
     // replace original products with new content
-    for (const a of answers) {
-      const content = a.choices[0].message.content ?? "{}";
-      const data = content.replaceAll(/```(json)?/g, "").trim();
-      const chunk = JSON.parse(data) as ShopifyProduct[];
-
-      for (const data of chunk) {
-        if (data.id === undefined) throw "Invalid AI response: no id.";
-        if (data["SEO Title"] === undefined)
-          throw "Invalid AI response: no SEO Title.";
-        if (data["SEO Description"] === undefined)
-          throw "Invalid AI response: no SEO Description.";
-        const p = products[parseInt(data.id)];
-        products[parseInt(data.id)] = {
-          ...p,
-          ...data,
-          "Image Alt Text": data["SEO Title"],
-        };
-        products[parseInt(data.id)].id = undefined;
-      }
+    for (const data of ans) {
+      if (data.id === undefined) throw "Invalid AI response: no id.";
+      if (data.SEOTitle === undefined)
+        throw "Invalid AI response: no SEO Title.";
+      if (data.SEODescription === undefined)
+        throw "Invalid AI response: no SEO Description.";
+      const p = products[parseInt(data.id)];
+      products[parseInt(data.id)] = {
+        ...p,
+        ...data,
+      };
+      products[parseInt(data.id)].id = undefined;
     }
     //  store results to db & oss
-    const csvContent = await dumpCSV(products);
+    const csvContent = await dumpCSV(
+      csvProducts.map((product, i) => {
+        const p = products[i];
+        if (product.Title !== p.title) {
+          throw `Product ${product.Title} matching error.`;
+        }
+        return {
+          ...product,
+          "SEO Title": p.SEOTitle,
+          "SEO Description": p.SEODescription,
+          "Image Alt Text": p.SEOTitle,
+        };
+      }),
+    );
 
     await s3.putObject({
       Bucket: BUCKET.name,

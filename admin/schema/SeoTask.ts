@@ -67,6 +67,13 @@ export const SeoTask: Lists.SeoTask = list({
       ref: "Store",
       ui: { itemView: { fieldMode: "read", fieldPosition: "sidebar" } },
     }),
+    push: integer({
+      ui: {
+        views: "./admin/views/seo-task-push-button",
+        createView: { fieldMode: "hidden" },
+        itemView: { fieldPosition: "sidebar" },
+      },
+    }),
     products: integer({
       ui: {
         views: "./admin/views/seo-task-products-url",
@@ -77,7 +84,6 @@ export const SeoTask: Lists.SeoTask = list({
     category: text({
       defaultValue: "None",
       ui: {
-        // views: "./admin/views/category-select"
         itemView: { fieldMode: "read" },
       },
     }),

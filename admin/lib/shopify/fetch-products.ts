@@ -86,9 +86,9 @@ export async function fetchAllProducts(
       };
     });
 
-    // await prisma.product.deleteMany({
-    //   where: { store: { id: { equals: store.id } } },
-    // });
+    await prisma.product.deleteMany({
+      where: { store: { id: { equals: store.id } } },
+    });
 
     // upsert
     await prisma.store.update({

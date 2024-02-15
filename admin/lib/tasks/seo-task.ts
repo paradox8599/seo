@@ -79,15 +79,15 @@ export async function runSeoTask(context: KeystoneContext) {
     // replace original products with new content
     for (const item of answers.flat()) {
       if (item.id === undefined) throw "Invalid AI response: no id.";
-      if (item["SEO Title"] === undefined)
+      if (item.SEOTitle === undefined)
         throw "Invalid AI response: no SEO Title.";
-      if (item["SEO Description"] === undefined)
+      if (item.SEODescription === undefined)
         throw "Invalid AI response: no SEO Description.";
 
       const idx = products.findIndex((p) => p.id === item.id);
       if (idx < 0) throw `Product ${item.id} not found.`;
       const p = products[idx];
-      products[idx] = { ...p, ...item, "Image Alt Text": p["SEO Title"] };
+      products[idx] = { ...p, ...item };
     }
 
     // write back to db
@@ -95,8 +95,8 @@ export async function runSeoTask(context: KeystoneContext) {
       data: products.map((p) => ({
         where: { id: p.id },
         data: {
-          SEOTitle: p["SEO Title"],
-          SEODescription: p["SEO Description"],
+          SEOTitle: p.SEOTitle,
+          SEODescription: p.SEODescription,
           version: newVersion,
         },
       })),

@@ -67,7 +67,6 @@ export async function pushProduct({
     shopifyId: string;
     SEOTitle: string;
     SEODescription: string;
-    store: { name: string; adminAccessToken: string };
   };
 }) {
   return await shopifyGQL({

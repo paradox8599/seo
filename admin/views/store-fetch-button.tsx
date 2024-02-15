@@ -1,31 +1,26 @@
 import { type controller } from "@keystone-6/core/fields/types/integer/views";
-import { type FieldProps } from "@keystone-6/core/types";
+import { CellComponent, type FieldProps } from "@keystone-6/core/types";
 import { FieldContainer } from "@keystone-ui/fields";
 import { Button } from "@keystone-ui/button";
 
 import React from "react";
 
 type BtnText = "Fetch Products" | "Fetching";
-
-export const Field = ({ value }: FieldProps<typeof controller>) => {
+function FetchButton({ id }: { id: string }) {
   const [btn, setBtn] = React.useState<{ disabled: boolean; text: BtnText }>({
     disabled: false,
     text: "Fetch Products",
   });
-  if (value.kind === "create") return <></>;
   return (
     <FieldContainer>
       <Button
         disabled={btn.disabled}
         onClick={async () => {
           setBtn({ text: "Fetching", disabled: true });
-          const res = await fetch(
-            `/api/store/fetch-all-products?id=${window.location.pathname.split("/")[2]}`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-            },
-          );
+          const res = await fetch(`/api/store/fetch-all-products?id=${id}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          });
           const data = await res.json();
           setBtn({ text: "Fetch Products", disabled: false });
           if (data.error) {
@@ -44,4 +39,13 @@ export const Field = ({ value }: FieldProps<typeof controller>) => {
       </Button>
     </FieldContainer>
   );
+}
+
+export const Field = ({ value }: FieldProps<typeof controller>) => {
+  if (value.kind === "create") return <></>;
+  return <FetchButton id={window.location.pathname.split("/")[2]} />;
+};
+
+export const Cell: CellComponent = ({ item }) => {
+  return <FetchButton id={item.id} />;
 };
