@@ -1,5 +1,6 @@
 import { SHOPIFY_API_VERSION } from "../../../src/lib/variables";
-import { ShopifyProduct } from "../../types/task";
+
+let throttle = 2000;
 
 export async function shopifyGQL({
   store,
@@ -10,7 +11,10 @@ export async function shopifyGQL({
   query: string;
   adminAccessToken: string;
 }) {
-  return await fetch(
+  while (throttle < 1500) {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
+  const r = await fetch(
     `https://${store}.myshopify.com/admin/api/${SHOPIFY_API_VERSION}/graphql.json`,
     {
       method: "POST",
@@ -21,6 +25,22 @@ export async function shopifyGQL({
       body: JSON.stringify({ query }),
     },
   );
+  const data: {
+    extensions: {
+      cost: {
+        requestedQueryCost: number;
+        actualQueryCost: number;
+        throttleStatus: {
+          maximumavailable: number;
+          currentlyAvailable: number;
+          restoreRate: number;
+        };
+      };
+    };
+  } = await r.json();
+  throttle = data.extensions.cost.throttleStatus.currentlyAvailable;
+  console.log("graphql", JSON.stringify(data.extensions, null, 2));
+  return data;
 }
 
 export async function getProducts({

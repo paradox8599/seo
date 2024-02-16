@@ -19,6 +19,7 @@ import {
   pushProductAPI,
   pushSEOTaskProductAPI,
 } from "./admin/routes/shopify";
+import { retryTaskAPI } from "./admin/routes/tasks";
 
 function withContext<
   F extends (
@@ -52,6 +53,8 @@ export default withAuth(
           "/api/task/push-products",
           withContext(context, pushSEOTaskProductAPI),
         );
+        // retry task
+        app.post("/api/task/retry", withContext(context, retryTaskAPI));
       },
     },
     ui: {

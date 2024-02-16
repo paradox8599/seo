@@ -47,13 +47,12 @@ export async function fetchAllProducts(
     let after: string | undefined | null;
     while (after !== null) {
       console.log("fetching after:", after);
-      const resp = await getProducts({
+      const data = await getProducts({
         store: store.name,
         adminAccessToken: store.adminAccessToken,
         first: 250,
         after,
       });
-      const data = await resp.json();
       if (data?.data?.errors || !data?.data?.products) {
         throw new Error(JSON.stringify(data?.data?.errors));
       }

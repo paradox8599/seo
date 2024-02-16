@@ -51,12 +51,11 @@ export async function pushProductAPI(
       SEODescription: string;
       store: { name: string; adminAccessToken: string };
     };
-    const r = await pushProduct({
+    await pushProduct({
       store: prod.store.name,
       adminAccessToken: prod.store.adminAccessToken,
       product: prod,
     });
-    console.log(await r.json());
     return res.json({ message: "ok" });
   } catch (e) {
     console.log(e);
