@@ -19,7 +19,8 @@ import {
   pushProductAPI,
   pushSEOTaskProductAPI,
 } from "./admin/routes/shopify";
-import { retryTaskAPI } from "./admin/routes/tasks";
+import { retrySEOTaskAPI } from "./admin/routes/tasks";
+import { createChildBlogAPI } from "./admin/routes/blog";
 
 function withContext<
   F extends (
@@ -30,8 +31,6 @@ function withContext<
 >(commonContext: Context, f: F) {
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   return async (req: any, res: any) => {
-    // const request = req as NextApiRequest;
-    // const reponse = res as NextApiResponse;
     return f(req, res, await commonContext.withRequest(req, res));
   };
 }
@@ -50,11 +49,13 @@ export default withAuth(
         app.post("/api/product/push", withContext(context, pushProductAPI));
         // push task products
         app.post(
-          "/api/task/push-products",
+          "/api/seotask/push-products",
           withContext(context, pushSEOTaskProductAPI),
         );
         // retry task
-        app.post("/api/task/retry", withContext(context, retryTaskAPI));
+        app.post("/api/seotask/retry", withContext(context, retrySEOTaskAPI));
+        // create child blog
+        app.post("/api/blog/create", withContext(context, createChildBlogAPI));
       },
     },
     ui: {

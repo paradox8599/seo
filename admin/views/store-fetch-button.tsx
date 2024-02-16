@@ -14,6 +14,7 @@ function FetchButton({ id }: { id: string }) {
   return (
     <FieldContainer>
       <Button
+        size="small"
         disabled={btn.disabled}
         onClick={async () => {
           setBtn({ text: "Fetching", disabled: true });

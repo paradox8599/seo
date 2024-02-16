@@ -7,6 +7,15 @@ export enum Role {
 
 export type RoleName = keyof typeof Role;
 
+export type Session = {
+  data: {
+    id: string;
+    name: string;
+    email: string;
+    role: Role;
+  };
+};
+
 export type User = {
   id?: string;
   name?: string;

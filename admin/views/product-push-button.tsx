@@ -15,6 +15,7 @@ function PushButton({ id }: { id: string }) {
   return (
     <FieldContainer>
       <Button
+        size="small"
         disabled={btn.disabled}
         onClick={async () => {
           setBtn({ text: "Pushing", disabled: true });

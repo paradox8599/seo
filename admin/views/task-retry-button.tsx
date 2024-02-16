@@ -21,10 +21,11 @@ function RetryButton({
   return (
     <FieldContainer>
       <Button
+        size="small"
         disabled={btn.disabled || disabled}
         onClick={async () => {
           setBtn({ text: "Retrying", disabled: true });
-          const res = await fetch(`/api/task/retry?id=${id}`, {
+          const res = await fetch(`/api/seotask/retry?id=${id}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
           });

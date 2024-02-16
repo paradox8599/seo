@@ -1,5 +1,4 @@
 import { graphql, list } from "@keystone-6/core";
-import { allowAll } from "@keystone-6/core/access";
 import {
   checkbox,
   file,
@@ -11,14 +10,16 @@ import {
 
 import { BUCKET } from "../../src/lib/variables";
 import { createdAtField } from "../helpers/fields";
-import { type Lists } from ".keystone/types";
-import { TaskStatus } from "../types/task";
 import { s3 } from "../lib/tasks/s3";
 import { TaskQueue, Tasks } from "../lib/tasks/task-queue";
+import { TaskStatus } from "../types/task";
+import { type Lists } from ".keystone/types";
+import { isAdmin, isNotAdmin } from "../helpers/access";
 
 export const SeoFileTask: Lists.SeoFileTask = list({
-  access: allowAll,
+  access: isAdmin,
   ui: {
+    isHidden: isNotAdmin,
     listView: {
       initialColumns: ["id", "description", "store", "status", "createdAt"],
       initialSort: { field: "createdAt", direction: "DESC" },
@@ -106,7 +107,7 @@ export const SeoFileTask: Lists.SeoFileTask = list({
       },
     }),
     outputFile: virtual({
-      ui: { views: "./admin/views/url", createView: { fieldMode: "hidden" } },
+      ui: { views: "./admin/views/seo-file-output-url", createView: { fieldMode: "hidden" } },
       field: graphql.field({
         type: graphql.String,
         resolve: async (item) =>
@@ -139,7 +140,7 @@ export const SeoFileTask: Lists.SeoFileTask = list({
     logs: json({
       defaultValue: [],
       ui: {
-        views: "./admin/views/logs",
+        views: "./admin/views/task-logs",
         itemView: { fieldMode: "read" },
         createView: { fieldMode: "hidden" },
       },

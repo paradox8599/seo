@@ -1,14 +1,15 @@
 import { list } from "@keystone-6/core";
-import { allowAll } from "@keystone-6/core/access";
 import { integer, relationship, text } from "@keystone-6/core/fields";
 
 import { createdAtField, updatedAtField } from "../helpers/fields";
 import { type Lists } from ".keystone/types";
 import { fetchAllProducts } from "../lib/shopify/fetch-products";
+import { isAdmin, isNotAdmin } from "../helpers/access";
 
 export const Store: Lists.Store = list({
-  access: allowAll,
+  access: isAdmin,
   ui: {
+    isHidden: isNotAdmin,
     listView: {
       initialColumns: ["name", "createdAt", "updatedAt"],
       initialSort: { field: "updatedAt", direction: "DESC" },
@@ -45,6 +46,7 @@ export const Store: Lists.Store = list({
         createView: { fieldMode: "hidden" },
       },
     }),
+    users: relationship({ ref: "User", many: true }),
     name: text({ validation: { isRequired: true } }),
     adminAccessToken: text({ validation: { isRequired: true } }),
     version: integer({
@@ -60,6 +62,13 @@ export const Store: Lists.Store = list({
       ui: {
         itemView: { fieldMode: "hidden" },
         createView: { fieldMode: "hidden" },
+      },
+    }),
+    background: text({
+      ui: {
+        description:
+          "Store background information (try asking: https://gemini.google.com/app to conclude it)",
+        displayMode: "textarea",
       },
     }),
 

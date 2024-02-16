@@ -1,5 +1,4 @@
 import { graphql, list } from "@keystone-6/core";
-import { allowAll } from "@keystone-6/core/access";
 import {
   checkbox,
   integer,
@@ -13,10 +12,12 @@ import { createdAtField } from "../helpers/fields";
 import { type Lists } from ".keystone/types";
 import { TaskStatus } from "../types/task";
 import { TaskQueue, Tasks } from "../lib/tasks/task-queue";
+import { isAdmin, isNotAdmin } from "../helpers/access";
 
 export const SeoTask: Lists.SeoTask = list({
-  access: allowAll,
+  access: isAdmin,
   ui: {
+    isHidden: isNotAdmin,
     listView: {
       initialColumns: ["id", "description", "store", "status", "createdAt"],
       initialSort: { field: "createdAt", direction: "DESC" },
@@ -117,7 +118,7 @@ export const SeoTask: Lists.SeoTask = list({
     logs: json({
       defaultValue: [],
       ui: {
-        views: "./admin/views/logs",
+        views: "./admin/views/task-logs",
         itemView: { fieldMode: "read" },
         createView: { fieldMode: "hidden" },
       },
