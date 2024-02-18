@@ -81,7 +81,7 @@ export const SeoTask: Lists.SeoTask = list({
     }),
     products: integer({
       ui: {
-        views: "./admin/views/seo-task-products-url",
+        views: "./admin/views/seo-task-view-products-button",
         createView: { fieldMode: "hidden" },
         itemView: { fieldPosition: "sidebar" },
       },

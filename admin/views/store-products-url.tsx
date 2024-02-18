@@ -11,7 +11,7 @@ export const Field = ({ itemValue }: FieldProps<typeof controller>) => {
   return (
     <FieldContainer>
       <a href={url}>
-        <Button>View Products</Button>
+        <Button size="small">View Products</Button>
       </a>
     </FieldContainer>
   );

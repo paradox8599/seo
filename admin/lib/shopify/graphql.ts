@@ -26,6 +26,8 @@ export async function shopifyGQL({
     },
   );
   const data: {
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+    data: any;
     extensions: {
       cost: {
         requestedQueryCost: number;

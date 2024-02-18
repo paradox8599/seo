@@ -7,13 +7,13 @@ import { type Context } from ".keystone/types";
 
 export async function resetSeoTasks(ctx: KeystoneContext) {
   const seoTaskIdResults = (await (
-    ctx as unknown as Context
+    ctx.sudo() as unknown as Context
   ).query.SeoTask.findMany({
     where: { status: { in: [TaskStatus.pending, TaskStatus.running] } },
     query: "id",
   })) as { id: string }[];
   const seoTaskIds = seoTaskIdResults.map((r) => r.id);
-  await (ctx as unknown as Context).query.SeoTask.updateMany({
+  await (ctx.sudo() as unknown as Context).query.SeoTask.updateMany({
     data: seoTaskIds.map((id) => ({
       where: { id },
       data: { status: TaskStatus.idle },
@@ -22,7 +22,7 @@ export async function resetSeoTasks(ctx: KeystoneContext) {
 }
 
 export async function runSeoTask(context: KeystoneContext) {
-  const ctx = context as unknown as Context;
+  const ctx = context.sudo() as unknown as Context;
   const task = TaskQueue.consume(Tasks.SeoTask);
   if (!task) return;
 
