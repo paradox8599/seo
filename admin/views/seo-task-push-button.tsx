@@ -1,7 +1,7 @@
 import { type controller } from "@keystone-6/core/fields/types/integer/views";
-import { type FieldProps } from "@keystone-6/core/types";
-import { FieldContainer } from "@keystone-ui/fields";
+import { CellComponent, type FieldProps } from "@keystone-6/core/types";
 import { Button } from "@keystone-ui/button";
+import { FieldContainer } from "@keystone-ui/fields";
 
 import React from "react";
 import { TaskStatus } from "../types/task";
@@ -53,4 +53,8 @@ export const Field = ({ value, itemValue }: FieldProps<typeof controller>) => {
     return <></>;
   }
   return <PushButton id={window.location.pathname.split("/")[2]} />;
+};
+
+export const Cell: CellComponent = ({ item }) => {
+  return <PushButton id={item.id} />;
 };

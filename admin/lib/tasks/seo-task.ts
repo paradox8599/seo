@@ -66,7 +66,10 @@ export async function runSeoTask(context: KeystoneContext) {
     const products = (await ctx.query.Product.findMany({
       where: {
         store: { id: { equals: res.store.id } },
-        category: { equals: res.category },
+        OR:
+          res.category.trim() === ""
+            ? []
+            : [{ category: { equals: res.category } }],
         status: { equals: "ACTIVE" },
       },
       query: "id title version",

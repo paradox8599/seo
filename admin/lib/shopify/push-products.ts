@@ -30,7 +30,11 @@ export async function pushSEOProducts({
     const products = (await context.query.Product.findMany({
       where: {
         store: { id: { equals: task.store.id } },
-        category: { equals: task.category },
+        // category: { equals: task.category },
+        OR:
+          task.category.trim() === ""
+            ? []
+            : [{ category: { equals: task.category } }],
         version: { equals: task.version },
       },
       query:

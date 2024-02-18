@@ -19,7 +19,16 @@ export const SeoTask: Lists.SeoTask = list({
   ui: {
     isHidden: isNotAdmin,
     listView: {
-      initialColumns: ["id", "description", "store", "status", "createdAt"],
+      initialColumns: [
+        "id",
+        "version",
+        "description",
+        "store",
+        "status",
+        "createdAt",
+        "retry",
+        "push",
+      ],
       initialSort: { field: "createdAt", direction: "DESC" },
     },
   },

@@ -11,7 +11,13 @@ export const Store: Lists.Store = list({
   ui: {
     isHidden: isNotAdmin,
     listView: {
-      initialColumns: ["name", "createdAt", "updatedAt"],
+      initialColumns: [
+        "name",
+        "version",
+        "createdAt",
+        "updatedAt",
+        "fetchProducts",
+      ],
       initialSort: { field: "updatedAt", direction: "DESC" },
       pageSize: 50,
     },
