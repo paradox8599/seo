@@ -41,7 +41,7 @@ export async function shopifyGQL({
     };
   } = await r.json();
   throttle = data.extensions.cost.throttleStatus.currentlyAvailable;
-  console.log("graphql", JSON.stringify(data.extensions, null, 2));
+  // console.log("graphql", JSON.stringify(data.extensions, null, 2));
   return data;
 }
 
