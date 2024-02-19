@@ -28,7 +28,7 @@ export async function createChildBlogAPI(
     const parent: Blog = blog.parent ?? blog;
     parent.blog = blog.blog;
     parent.store = blog.store;
-    console.log("blog:", blog);
+    // console.log("blog:", blog);
 
     const newBlog = await ctx.query.Blog.createOne({
       data: {
