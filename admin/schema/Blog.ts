@@ -98,7 +98,7 @@ export const Blog: Lists.Blog = list({
       access: isAdmin,
       formatting: true,
     }),
-    comments: document({ formatting: true }),
+    comments: text({ ui: { displayMode: "textarea" } }),
     approved: checkbox({
       ui: {
         createView: { fieldMode: "hidden" },

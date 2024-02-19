@@ -15,7 +15,7 @@ export async function graphql({
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      query: query.replace(/(\r\n|\n|\r|\t)/gm, " ").replace(/  +/g, " "),
+      query: query.replace(/(\r\n|\n|\r|\t)/gm, " ").replace(/ {2,}/g, " "),
       variables,
     }),
   });
