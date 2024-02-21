@@ -1,8 +1,4 @@
-import {
-  OPENAI_API_KEY,
-  OPENAI_ENDPOINT,
-  OPENAI_MODEL,
-} from "../../src/lib/variables";
+import { OPENAI } from "../../src/lib/variables";
 import OpenAI from "openai";
 import tk from "tiktoken";
 
@@ -10,8 +6,8 @@ export const token = tk.get_encoding("cl100k_base");
 let _openai: OpenAI | undefined;
 function getOpenAI() {
   _openai ??= new OpenAI({
-    baseURL: OPENAI_ENDPOINT?.href,
-    apiKey: OPENAI_API_KEY,
+    baseURL: OPENAI.endpoint?.href,
+    apiKey: OPENAI.apiKey,
   });
   return _openai;
 }
@@ -30,20 +26,20 @@ type ChatMessage = GeminiMessage | OpenAIMessage;
 
 export async function ask({
   prompt,
-  instruction,
+  instructions = [],
   history,
 }: {
   history?: ChatMessage[];
   prompt: string;
-  instruction?: string;
+  instructions?: string[];
 }) {
-  const instructions: ChatMessage[] = instruction
-    ? [{ role: OPENAI_ENDPOINT ? "user" : "system", content: instruction }]
-    : [];
   const chatResult = await getOpenAI().chat.completions.create({
-    model: OPENAI_MODEL,
+    model: OPENAI.model,
     messages: [
-      ...instructions,
+      ...instructions.map((i) => ({
+        role: "system",
+        content: i,
+      })),
       ...(history ?? []),
       { role: "user", content: prompt },
     ],
@@ -66,10 +62,10 @@ function chunkArray<T>({ arr, size }: { arr: T[]; size: number }) {
 
 export async function askAll({
   prompts,
-  instruction,
+  instructions,
   chunkSize = 7,
 }: {
-  instruction: string;
+  instructions: string[];
   prompts: object[];
   chunkSize?: number;
 }): Promise<unknown[]> {
@@ -80,7 +76,7 @@ export async function askAll({
   const answers = [];
   for (let i = 0; i < prepared.length; i++) {
     const prompt = prepared[i];
-    const answer = await ask({ instruction, prompt: JSON.stringify(prompt) });
+    const answer = await ask({ instructions, prompt: JSON.stringify(prompt) });
     const content = JSON.parse(answer ?? "[]");
     answers.push(content);
   }

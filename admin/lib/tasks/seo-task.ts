@@ -51,7 +51,8 @@ export async function runSeoTask(context: KeystoneContext) {
 
   try {
     setStatus(TaskStatus.running);
-    const res = (await ctx.query.SeoTask.findOne({
+    // take seo task info
+    const taskInfo = (await ctx.query.SeoTask.findOne({
       where: { id: task.id },
       query: "store { id version } collection { id } category instruction",
     })) as {
@@ -60,15 +61,21 @@ export async function runSeoTask(context: KeystoneContext) {
       category: string;
       instruction: string;
     };
-    const newVersion = res.store.version + 1;
+    const newVersion = taskInfo.store.version + 1;
 
     // find products by store and category
     const products = (await ctx.query.Product.findMany({
       where: {
-        store: { id: { equals: res.store.id } },
-        category: { contains: res.category },
-        OR: res.collection?.id
-          ? [{ collections: { some: { id: { equals: res.collection.id } } } }]
+        store: { id: { equals: taskInfo.store.id } },
+        category: { contains: taskInfo.category },
+        OR: taskInfo.collection?.id
+          ? [
+              {
+                collections: {
+                  some: { id: { equals: taskInfo.collection.id } },
+                },
+              },
+            ]
           : [],
         status: { equals: "ACTIVE" },
       },
@@ -80,7 +87,7 @@ export async function runSeoTask(context: KeystoneContext) {
     // ask AI
     const answers = (await askAll({
       prompts: preparedProducts,
-      instruction: res.instruction,
+      instructions: [taskInfo.instruction],
     })) as ShopifyProduct[][];
 
     // replace original products with new content
@@ -115,7 +122,7 @@ export async function runSeoTask(context: KeystoneContext) {
       })),
     });
     await ctx.query.Store.updateOne({
-      where: { id: res.store.id },
+      where: { id: taskInfo.store.id },
       data: { version: newVersion },
     });
     await ctx.query.SeoTask.updateOne({
@@ -123,7 +130,7 @@ export async function runSeoTask(context: KeystoneContext) {
       data: { version: newVersion },
     });
     await setStatus(TaskStatus.success);
-    console.log("done");
+    console.log(`SEO task ${task.id} for store ${taskInfo.store.id} done`);
   } catch (e) {
     await log(`${e}`);
     await setStatus(TaskStatus.failure);

@@ -88,7 +88,7 @@ export async function runSeoFileTask(context: KeystoneContext) {
 
     const ans = (
       await askAll({
-        instruction: res.instruction,
+        instructions: [res.instruction],
         prompts: filteredProducts,
       })
     ).flat() as { id: string; SEOTitle: string; SEODescription: string }[];

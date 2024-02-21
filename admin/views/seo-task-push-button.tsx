@@ -5,6 +5,7 @@ import { FieldContainer } from "@keystone-ui/fields";
 
 import React from "react";
 import { TaskStatus } from "../types/task";
+import { useRouter } from "next/navigation";
 
 type BtnText = "Push Products" | "Pushing";
 
@@ -13,12 +14,15 @@ function PushButton({ id }: { id: string }) {
     disabled: false,
     text: "Push Products",
   });
+  const router = useRouter();
   return (
     <FieldContainer>
       <Button
         size="small"
         disabled={btn.disabled}
         onClick={async () => {
+          const push = confirm("Confirm pushing products to shopify?");
+          if (!push) return;
           setBtn({ text: "Pushing", disabled: true });
           const res = await fetch(`/api/seotask/push-products?id=${id}`, {
             method: "POST",
@@ -33,6 +37,7 @@ function PushButton({ id }: { id: string }) {
           }
           if (data.message === "ok") {
             alert("Success");
+            router.refresh();
             return;
           }
           alert(`Unknown error: ${JSON.stringify(data, null, 2)}`);

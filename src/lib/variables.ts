@@ -1,6 +1,6 @@
 try {
   require("dotenv").config();
-} catch (e) {}
+} catch (e) { }
 
 // KeystoneJS server config
 type DB_PROVIDER_TYPE = "sqlite" | "mysql" | "postgresql";
@@ -12,15 +12,8 @@ export const DB_PROVIDER: DB_PROVIDER_TYPE =
 
 export const DATABASE_URL = process.env.DATABASE_URL || "file://keystone.db";
 
-// KeystoneJS & GraphQL Server
-export const SERVER_URL = new URL(
-  process.env.NEXT_PUBLIC_SERVER_URL ?? "http://locahost:3000",
-);
-
 export const GRAPHQL_PATH =
   process.env.NEXT_PUBLIC_GRAPHQL_PATH ?? "/api/graphql";
-
-export const GRAPHQL_ENDPOINT = new URL(GRAPHQL_PATH, SERVER_URL);
 
 export const BUCKET = {
   name: process.env.AWS_BUCKET ?? "",
@@ -30,13 +23,19 @@ export const BUCKET = {
   customUrl: process.env.AWS_CUSTOM_URL,
 };
 
-export const SERVER_HOSTNAME = process.env.SERVER_HOSTNAME ?? "";
-
-export const OPENAI_ENDPOINT =
-  (process.env.OPENAI_ENDPOINT ?? "").trim().length > 0
-    ? new URL(process.env.OPENAI_ENDPOINT ?? "")
-    : undefined;
-export const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-export const OPENAI_MODEL = process.env.OPENAI_MODEL ?? "gpt-3.5-turbo";
+export const OPENAI = {
+  endpoint:
+    (process.env.OPENAI_ENDPOINT ?? "").trim().length > 0
+      ? new URL(process.env.OPENAI_ENDPOINT ?? "")
+      : undefined;
+  apiKey: process.env.OPENAI_API_KEY,
+  model: process.env.OPENAI_MODEL ?? "gpt-3.5-turbo",
+}
+// export const OPENAI_ENDPOINT =
+//   (process.env.OPENAI_ENDPOINT ?? "").trim().length > 0
+//     ? new URL(process.env.OPENAI_ENDPOINT ?? "")
+//     : undefined;
+// export const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+// export const OPENAI_MODEL = process.env.OPENAI_MODEL ?? "gpt-3.5-turbo";
 
 export const SHOPIFY_API_VERSION = process.env.SHOPIFY_API_VERSION ?? "2024-01";

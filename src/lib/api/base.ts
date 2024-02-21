@@ -1,15 +1,15 @@
 import useSWR from "swr";
-import { GRAPHQL_ENDPOINT } from "../variables";
+import { GRAPHQL_PATH } from "../variables";
 import { Obj } from "../types/helpers";
 
 export async function graphql({
   query,
   variables = {},
-  url = GRAPHQL_ENDPOINT,
+  url = GRAPHQL_PATH,
 }: {
   query: string;
   variables?: Obj;
-  url?: URL;
+  url?: string | URL;
 }): Promise<Obj> {
   const response = await fetch(url, {
     method: "POST",

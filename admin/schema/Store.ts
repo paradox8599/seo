@@ -12,6 +12,7 @@ export const Store: Lists.Store = list({
     isHidden: isNotAdmin,
     listView: {
       initialColumns: [
+        "alias",
         "name",
         "version",
         "createdAt",
@@ -53,6 +54,7 @@ export const Store: Lists.Store = list({
       },
     }),
     users: relationship({ ref: "User", many: true }),
+    alias: text({}),
     name: text({ validation: { isRequired: true } }),
     adminAccessToken: text({ validation: { isRequired: true } }),
     version: integer({
