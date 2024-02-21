@@ -1,4 +1,7 @@
-import { Task } from "../../types/task";
+export type Task = {
+  id: string;
+  type: Tasks;
+};
 
 export enum Tasks {
   SeoTask = "SeoTask",

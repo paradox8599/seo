@@ -1,9 +1,5 @@
 import { KeystoneContext } from "@keystone-6/core/types";
-import {
-  ShopifyCSVProduct,
-  ShopifyProduct,
-  TaskStatus,
-} from "../../types/task";
+import { ShopifyProduct, TaskStatus } from "../../types/task";
 import { dumpCSV, parseCSV } from "../csv_manager";
 import { askAll } from "../openai";
 
@@ -11,6 +7,15 @@ import { BUCKET } from "../../../src/lib/variables";
 import { s3 } from "./s3";
 import { TaskQueue, Tasks } from "./task-queue";
 import { type Context } from ".keystone/types";
+
+export type ShopifyCSVProduct = {
+  id?: string;
+  Title: string;
+  "SEO Title": string;
+  "SEO Description": string;
+  "Image Alt Text"?: string;
+  Status: string;
+};
 
 export async function resetSeoFileTasks(ctx: KeystoneContext) {
   const seoTaskIdResults = (await (

@@ -33,20 +33,16 @@ export async function ask({
   prompt: string;
   instructions?: string[];
 }) {
+  const inst = instructions.map(
+    (i) => ({ role: "system", content: i }) as OpenAIMessage,
+  );
   const chatResult = await getOpenAI().chat.completions.create({
     model: OPENAI.model,
-    messages: [
-      ...instructions.map((i) => ({
-        role: "system",
-        content: i,
-      })),
-      ...(history ?? []),
-      { role: "user", content: prompt },
-    ],
+    messages: [...inst, ...(history ?? []), { role: "user", content: prompt }],
   });
   const finishReason = chatResult.choices[0].finish_reason;
-  console.log("prompt:", JSON.stringify(prompt, null, 2));
-  console.log("result:", JSON.stringify(chatResult, null, 2));
+  console.log("\n\nprompt:\n", JSON.stringify(prompt, null, 2));
+  console.log("\n\nresult:\n", JSON.stringify(chatResult, null, 2));
   if (finishReason !== "stop") {
     throw `[Completion] Fail reason: "${finishReason}"`;
   }
