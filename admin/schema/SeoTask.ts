@@ -13,6 +13,22 @@ import { type Lists } from ".keystone/types";
 import { TaskStatus } from "../types/task";
 import { TaskQueue, Tasks } from "../lib/tasks/task-queue";
 import { isAdmin, isNotAdmin } from "../helpers/access";
+import { type Context } from ".keystone/types";
+
+async function setStatus({
+  context,
+  id,
+  status = TaskStatus.pending,
+}: {
+  context: Context;
+  id: string;
+  status?: TaskStatus;
+}) {
+  await context.query.SeoTask.updateOne({
+    where: { id },
+    data: { status: status, retry: false },
+  });
+}
 
 export const SeoTask: Lists.SeoTask = list({
   access: isAdmin,
@@ -21,11 +37,12 @@ export const SeoTask: Lists.SeoTask = list({
     listView: {
       initialColumns: [
         "id",
-        "version",
         "description",
         "store",
-        "status",
+        "productCount",
+        "version",
         "createdAt",
+        "status",
         "retry",
         "push",
       ],
@@ -33,20 +50,39 @@ export const SeoTask: Lists.SeoTask = list({
     },
   },
   hooks: {
+    validateInput: async ({ context, addValidationError, resolvedData }) => {
+      // only allow collection from the same store
+      const colId = resolvedData.collection?.connect?.id;
+      const store = resolvedData.store?.connect?.id;
+      if (colId) {
+        const col = (await context.sudo().query.Collection.findOne({
+          where: { id: colId },
+          query: "store { id }",
+        })) as unknown as { store: { id: string } };
+        if (col.store.id !== store) {
+          addValidationError("Collection must belong to the same Store");
+        }
+      }
+    },
     afterOperation: {
       create: async ({ item, context }) => {
+        // take store version as the initial version
+        const { version } = await context.query.Store.findOne({
+          where: { id: item.storeId },
+          query: "version",
+        });
         await context.query.SeoTask.updateOne({
           where: { id: item.id },
-          data: { status: TaskStatus.pending },
+          data: { version },
         });
-        TaskQueue.add(Tasks.SeoTask, { id: item.id, type: Tasks.SeoTask });
+        // add task to queue and update task status on create
+        // await setStatus({ context, id: item.id });
+        // TaskQueue.add(Tasks.SeoTask, { id: item.id, type: Tasks.SeoTask });
       },
       update: async ({ item, context }) => {
+        // add task to queue and update task status on retry
         if (item.retry) {
-          await context.query.SeoTask.updateOne({
-            where: { id: item.id },
-            data: { status: TaskStatus.pending, retry: false },
-          });
+          await setStatus({ context, id: item.id });
           const exists = TaskQueue.get(Tasks.SeoTask).filter(
             (t) => t.id === item.id,
           );
@@ -75,11 +111,13 @@ export const SeoTask: Lists.SeoTask = list({
         itemView: { fieldPosition: "sidebar" },
         description: "Do not retry when already running",
       },
-      hooks: {},
     }),
     store: relationship({
       ref: "Store",
-      ui: { itemView: { fieldMode: "read", fieldPosition: "sidebar" } },
+      ui: {
+        itemView: { fieldMode: "read", fieldPosition: "sidebar" },
+        hideCreate: true,
+      },
     }),
     push: integer({
       ui: {
@@ -87,6 +125,29 @@ export const SeoTask: Lists.SeoTask = list({
         createView: { fieldMode: "hidden" },
         itemView: { fieldPosition: "sidebar" },
       },
+    }),
+    productCount: virtual({
+      field: graphql.field({
+        type: graphql.Int,
+        async resolve(item, _args, context) {
+          return await context.query.Product.count({
+            where: {
+              store: { id: { equals: item.storeId } },
+              category: { contains: item.category },
+              OR: item.collectionId
+                ? [
+                    {
+                      collections: {
+                        some: { id: { equals: item.collectionId } },
+                      },
+                    },
+                  ]
+                : [],
+              status: { equals: "ACTIVE" },
+            },
+          });
+        },
+      }),
     }),
     products: integer({
       ui: {
@@ -96,14 +157,21 @@ export const SeoTask: Lists.SeoTask = list({
       },
     }),
     category: text({
-      defaultValue: "None",
+      defaultValue: "",
       ui: {
         itemView: { fieldMode: "read" },
+        description: "Leave empty for all",
       },
     }),
+    collection: relationship({
+      ref: "Collection",
+      many: false,
+      ui: { itemView: { fieldMode: "read" }, hideCreate: true },
+    }),
 
-    // form body
+    // body
     version: integer({
+      defaultValue: 0,
       ui: {
         createView: { fieldMode: "hidden" },
         itemView: { fieldMode: "read" },
@@ -125,6 +193,7 @@ export const SeoTask: Lists.SeoTask = list({
       }),
     }),
     logs: json({
+      // array of strings
       defaultValue: [],
       ui: {
         views: "./admin/views/task-logs",

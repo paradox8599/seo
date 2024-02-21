@@ -7,6 +7,7 @@ type ProductData = {
   title: string | null;
   status: string | null;
   seo: { title: string | null; description: string | null };
+  collections: { edges: { node: { title: string } }[] };
   productCategory: {
     productTaxonomyNode: { fullName: string };
   } | null;
@@ -72,53 +73,59 @@ export async function fetchAllProducts(
     }
     console.log("start upserting");
 
-    // get item ids for existing products
-    const old = (await context.query.Product.findMany({
-      where: { shopifyId: { in: products.map((p) => p.id) } },
-      query: "id shopifyId",
-    })) as unknown as { id: string; shopifyId: string }[];
-
-    const updateProducts = products.map((p) => {
-      return {
-        ...p,
-        dbId: old.find((o) => o.shopifyId === p.id)?.id ?? p.id,
-      };
-    });
-
+    // delete all products in store
+    console.log(`Deleting all products in store ${store.name}`);
     await prisma.product.deleteMany({
       where: { store: { id: { equals: store.id } } },
     });
-
-    // upsert
-    await prisma.store.update({
-      where: { id: store.id },
-      data: {
-        products: {
-          upsert: [
-            ...updateProducts.map((p) => {
-              const data = {
-                shopifyId: p.id,
-                title: p.title ?? "",
-                category:
-                  p.productCategory?.productTaxonomyNode?.fullName ?? "None",
-                status: p.status ?? "",
-                SEOTitle: p.seo.title ?? "",
-                SEODescription: p.seo.description ?? "",
-                raw: { ...p, dbId: undefined },
-                version: store.version,
-              };
-              return {
-                create: data,
-                update: data,
-                where: { id: p.dbId },
-              };
-            }),
-          ],
-        },
-      },
+    // delete empty collections
+    console.log("Deleting empty collections");
+    await prisma.collection.deleteMany({
+      where: { products: { none: { shopifyId: { startsWith: "gid" } } } },
     });
-    console.log("finished upserting, return");
+    // add new collections
+    const colNames = products.reduce((arr, p) => {
+      arr.push(...p.collections.edges.map((e) => e.node.title));
+      return arr;
+    }, [] as string[]);
+    const colNameSet = Array.from(new Set(colNames));
+    console.log("Creating collections");
+    await context.sudo().query.Collection.createMany({
+      data: colNameSet.map((c) => ({
+        name: c,
+        store: { connect: { id: store.id } },
+      })),
+    });
+    console.log("Getting colletions db info");
+    const colsData = (await context.sudo().query.Collection.findMany({
+      where: { store: { id: { equals: store.id } } },
+      query: "id name",
+    })) as unknown as { id: string; name: string }[];
+    // add products
+    const connectedProducts = products.map((p) => ({
+      ...p,
+      cols: p.collections.edges.map((e) => {
+        const col = colsData.find((c) => c.name === e.node.title);
+        if (!col) throw "collection expected";
+        return col;
+      }),
+    }));
+    console.log("Creating products");
+    await context.sudo().query.Product.createMany({
+      data: connectedProducts.map((p) => ({
+        shopifyId: p.id,
+        title: p.title ?? "",
+        store: { connect: { id: store.id } },
+        category: p.productCategory?.productTaxonomyNode?.fullName ?? "None",
+        collections: { connect: p.cols.map((c) => ({ id: c.id })) },
+        status: p.status ?? "",
+        SEOTitle: p.seo.title ?? "",
+        SEODescription: p.seo.description ?? "",
+        version: store.version,
+      })),
+    });
 
+    console.log("Finished fetching");
     return;
   } catch (e) {
     console.log(e);

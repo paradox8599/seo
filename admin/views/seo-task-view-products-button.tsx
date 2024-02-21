@@ -8,13 +8,20 @@ import React from "react";
 function ProductsButton({
   store,
   category,
-  version,
+  collection,
 }: {
   store: string;
   category: string;
-  version: number;
+  collection?: string;
 }) {
-  const url = `/products?%21store_matches="${store}"&%21category_contains_i="${category}"&%21status_is_i="ACTIVE"&%21version_is="${version}"`;
+  const match = [
+    `%21store_matches="${store}"`,
+    `%21category_contains_i="${category}"`,
+    collection ? `%21collections_matches="${collection}"` : "",
+    `%21status_is_i="ACTIVE"`,
+  ];
+
+  const url = `/products?${match.join("&")}`;
   return (
     <a href={url}>
       <Button size="small">View Products</Button>
@@ -24,21 +31,16 @@ function ProductsButton({
 
 export const Field = ({ itemValue }: FieldProps<typeof controller>) => {
   const item = itemValue as {
-    version: { value: { value: number } };
     store: { value: { value: { id: string } } };
     category: { value: { initial: { value: string } } };
-  };
-  const data = {
-    version: item.version.value.value,
-    store: item.store.value.value.id,
-    category: encodeURIComponent(item.category.value.initial.value),
+    collection: { value: { value?: { id: string } } };
   };
   return (
     <FieldContainer>
       <ProductsButton
-        store={data.store}
-        category={data.category}
-        version={data.version}
+        store={item.store.value.value.id}
+        category={encodeURIComponent(item.category.value.initial.value)}
+        collection={item.collection.value.value?.id}
       />
     </FieldContainer>
   );

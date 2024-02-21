@@ -53,44 +53,54 @@ export async function runSeoTask(context: KeystoneContext) {
     setStatus(TaskStatus.running);
     const res = (await ctx.query.SeoTask.findOne({
       where: { id: task.id },
-      query: "store { id } category instruction",
-    })) as { store: { id: string }; category: string; instruction: string };
-
-    const { version } = (await ctx.query.Store.findOne({
-      where: { id: res.store.id },
-      query: "version",
-    })) as { version: number };
-    const newVersion = version + 1;
+      query: "store { id version } collection { id } category instruction",
+    })) as {
+      store: { id: string; version: number };
+      collection: null | { id: string };
+      category: string;
+      instruction: string;
+    };
+    const newVersion = res.store.version + 1;
 
     // find products by store and category
     const products = (await ctx.query.Product.findMany({
       where: {
         store: { id: { equals: res.store.id } },
-        OR:
-          res.category.trim() === ""
-            ? []
-            : [{ category: { equals: res.category } }],
+        category: { contains: res.category },
+        OR: res.collection?.id
+          ? [{ collections: { some: { id: { equals: res.collection.id } } } }]
+          : [],
         status: { equals: "ACTIVE" },
       },
-      query: "id title version",
+      query: "id title",
     })) as ShopifyProduct[];
 
+    const preparedProducts = products.map((p, i) => ({ ...p, id: i }));
+
+    // ask AI
     const answers = (await askAll({
-      prompts: products,
+      prompts: preparedProducts,
       instruction: res.instruction,
     })) as ShopifyProduct[][];
+
     // replace original products with new content
     for (const item of answers.flat()) {
-      if (item.id === undefined) throw "Invalid AI response: no id.";
-      if (item.SEOTitle === undefined)
+      if (item.id === undefined) {
+        throw "Invalid AI response: no id.";
+      }
+      if (item.SEOTitle === undefined) {
         throw "Invalid AI response: no SEO Title.";
-      if (item.SEODescription === undefined)
+      }
+      if (item.SEODescription === undefined) {
         throw "Invalid AI response: no SEO Description.";
+      }
 
-      const idx = products.findIndex((p) => p.id === item.id);
-      if (idx < 0) throw `Product ${item.id} not found.`;
-      const p = products[idx];
-      products[idx] = { ...p, ...item };
+      const index = item.id as unknown as number;
+      if (index < 0 || index > products.length) {
+        throw `Product ${item.id} not found.`;
+      }
+      const p = products[index];
+      products[index] = { ...p, ...item, id: p.id };
     }
 
     // write back to db

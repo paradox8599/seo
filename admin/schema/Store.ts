@@ -70,6 +70,14 @@ export const Store: Lists.Store = list({
         createView: { fieldMode: "hidden" },
       },
     }),
+    collections: relationship({
+      ref: "Collection.store",
+      many: true,
+      ui: {
+        itemView: { fieldMode: "hidden" },
+        createView: { fieldMode: "hidden" },
+      },
+    }),
     background: text({
       ui: {
         description:

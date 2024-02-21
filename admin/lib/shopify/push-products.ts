@@ -13,9 +13,9 @@ export async function pushSEOProducts({
     // query seo task info
     const task = (await context.query.SeoTask.findOne({
       where: { id: taskId },
-      query: "store { id } category version status",
+      query: "store { id version } category version status",
     })) as {
-      store: { id: string };
+      store: { id: string; version: number };
       category: string;
       version: number;
       status: TaskStatus;
@@ -24,6 +24,10 @@ export async function pushSEOProducts({
     // check if task is completed
     if (task.status !== TaskStatus.success) {
       throw "Task not completed";
+    }
+    // check if task version is updated with store version
+    if (task.version < task.store.version) {
+      throw "Task version is outdated";
     }
 
     // query products by task

@@ -20,12 +20,14 @@ export const Product: Lists.Product = list({
       initialColumns: [
         "title",
         "category",
+        "collections",
         "SEOTitle",
         "SEODescription",
         "store",
         "status",
+        "version",
       ],
-      pageSize: 500,
+      pageSize: 50,
     },
     hideCreate: true,
   },
@@ -40,6 +42,11 @@ export const Product: Lists.Product = list({
       ui: { itemView: { fieldMode: "read" } },
     }),
     category: text({
+      ui: { itemView: { fieldMode: "read" } },
+    }),
+    collections: relationship({
+      ref: "Collection.products",
+      many: true,
       ui: { itemView: { fieldMode: "read" } },
     }),
     SEOTitle: text({}),

@@ -48,7 +48,14 @@ export async function ask({
       { role: "user", content: prompt },
     ],
   });
-  return chatResult;
+  const finishReason = chatResult.choices[0].finish_reason;
+  console.log("prompt:", JSON.stringify(prompt, null, 2));
+  console.log("result:", JSON.stringify(chatResult, null, 2));
+  if (finishReason !== "stop") {
+    throw `[Completion] Fail reason: "${finishReason}"`;
+  }
+  const content = chatResult.choices[0].message.content;
+  return content?.replaceAll(/```(json)?/g, "").trim();
 }
 
 function chunkArray<T>({ arr, size }: { arr: T[]; size: number }) {
@@ -74,20 +81,8 @@ export async function askAll({
   for (let i = 0; i < prepared.length; i++) {
     const prompt = prepared[i];
     const answer = await ask({ instruction, prompt: JSON.stringify(prompt) });
-    const finishReason = answer.choices[0].finish_reason;
-    if (finishReason !== "stop") {
-      throw (
-        `[Completion] Fail reason: "${finishReason}",` +
-        ` at ${i} th chunk of size ${chunkSize}`
-      );
-    }
-    answers.push(answer);
+    const content = JSON.parse(answer ?? "[]");
+    answers.push(content);
   }
-  return answers.map((a) =>
-    JSON.parse(
-      (a.choices[0].message.content ?? "{}")
-        .replaceAll(/```(json)?/g, "")
-        .trim(),
-    ),
-  );
+  return answers;
 }

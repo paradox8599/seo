@@ -6,7 +6,7 @@ import { Button } from "@keystone-ui/button";
 import React from "react";
 import { TaskStatus } from "../types/task";
 
-type BtnText = "Retry" | "Retrying";
+type BtnText = "Start" | "Starting";
 function RetryButton({
   id,
   disabled = false,
@@ -16,7 +16,7 @@ function RetryButton({
 }) {
   const [btn, setBtn] = React.useState<{ disabled: boolean; text: BtnText }>({
     disabled: false,
-    text: "Retry",
+    text: "Start",
   });
   return (
     <FieldContainer>
@@ -24,20 +24,22 @@ function RetryButton({
         size="small"
         disabled={btn.disabled || disabled}
         onClick={async () => {
-          setBtn({ text: "Retrying", disabled: true });
+          setBtn({ text: "Starting", disabled: true });
           const res = await fetch(`/api/seotask/retry?id=${id}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
           });
           const data = await res.json();
-          setBtn({ text: "Retry", disabled: false });
+          setBtn({ text: "Start", disabled: false });
           if (data.error) {
             console.log(data.error);
             alert(JSON.stringify(data.error));
             return;
           }
           if (data.message === "ok") {
-            alert("Success");
+            alert(
+              "Success. Please make sure you backup the original products before pushing",
+            );
             window.location.reload();
             return;
           }

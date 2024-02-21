@@ -103,3 +103,9 @@ See `run.sh`
 - [Docker](https://docs.docker.com/engine/reference/builder)
 - [Fly.io](https://fly.io/docs/reference/configuration)
 - [Vercel](https://vercel.com)
+
+## Common Issues
+
+### GraphQL version error
+
+Remove `node_modules` and install again.

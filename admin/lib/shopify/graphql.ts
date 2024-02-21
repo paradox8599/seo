@@ -6,9 +6,12 @@ export async function shopifyGQL({
   store,
   adminAccessToken,
   query,
+  variables,
 }: {
   store: string;
   query: string;
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  variables?: any;
   adminAccessToken: string;
 }) {
   while (throttle < 1500) {
@@ -22,7 +25,13 @@ export async function shopifyGQL({
         "Content-Type": "application/json",
         "X-Shopify-Access-Token": adminAccessToken,
       },
-      body: JSON.stringify({ query }),
+      body: JSON.stringify({
+        query: query
+          .replace(/(\r\n|\n|\r|\t)/gm, " ")
+          .replace(/ {2,}/g, " ")
+          .trim(),
+        variables,
+      }),
     },
   );
   const data: {
@@ -59,22 +68,40 @@ export async function getProducts({
   return await shopifyGQL({
     store,
     adminAccessToken,
-    query: /* GRAPHQL */ `
-      query {
-        products ( first: ${first}, after: ${after ? `"${after}"` : "null"} ) {
-          pageInfo { endCursor hasNextPage }
+    query: /* GraphQL */ `
+      query Query($first: Int!, $after: String) {
+        products(first: $first, after: $after) {
+          pageInfo {
+            endCursor
+            hasNextPage
+          }
           edges {
             node {
-              id title status seo { title description }
-              productCategory { productTaxonomyNode { fullName } }
+              id
+              title
+              status
+              seo {
+                title
+                description
+              }
+              productCategory {
+                productTaxonomyNode {
+                  fullName
+                }
+              }
+              collections(first: 100) {
+                edges {
+                  node {
+                    title
+                  }
+                }
+              }
             }
           }
         }
       }
-    `
-      .replaceAll(/\n/g, " ")
-      .replaceAll(/\ +/g, " ")
-      .trim(),
+    `,
+    variables: { first, after },
   });
 }
 
@@ -94,18 +121,21 @@ export async function pushProduct({
   return await shopifyGQL({
     store,
     adminAccessToken,
-    query: /* GRAPHQL */ `
-      mutation {
-        productUpdate (
-          input: {
-            id: "${product.shopifyId}",
-            seo: {
-              title: "${product.SEOTitle}",
-              description: "${product.SEODescription}"
-            }
+    query: /* GraphQL */ `
+      mutation Mutation($id: ID!, $title: String!, $description: String!) {
+        productUpdate(
+          input: { id: $id, seo: { title: $title, description: $description } }
+        ) {
+          product {
+            id
           }
-        ) { product { id } }
+        }
       }
     `,
+    variables: {
+      id: product.shopifyId,
+      title: product.SEOTitle,
+      description: product.SEODescription,
+    },
   });
 }
