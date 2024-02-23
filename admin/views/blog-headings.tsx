@@ -1,7 +1,12 @@
 import { type controller } from "@keystone-6/core/fields/types/json/views";
 import { type FieldProps } from "@keystone-6/core/types";
 import { Button } from "@keystone-ui/button";
-import { FieldContainer, TextInput, FieldLabel } from "@keystone-ui/fields";
+import {
+  FieldContainer,
+  FieldLabel,
+  TextArea,
+  TextInput,
+} from "@keystone-ui/fields";
 
 import React from "react";
 import { useJson } from "./hooks/useJson";
@@ -46,7 +51,7 @@ function GenButton({ id }: { id: string }) {
   );
 }
 
-export const Field = ({ value, onChange }: FieldProps<typeof controller>) => {
+export const Field = ({ value, onChange,field }: FieldProps<typeof controller>) => {
   const { data, setData } = useJson<{ heading: string; desc: string }[]>({
     value,
     onChange,
@@ -54,7 +59,7 @@ export const Field = ({ value, onChange }: FieldProps<typeof controller>) => {
 
   return (
     <FieldContainer>
-      <FieldLabel>Headings</FieldLabel>
+      <FieldLabel>{field.label}</FieldLabel>
       <div style={{ marginBottom: "1rem" }}>
         <GenButton id={window.location.pathname.split("/")[2]} />
       </div>
@@ -71,6 +76,7 @@ export const Field = ({ value, onChange }: FieldProps<typeof controller>) => {
                 gap: "1rem",
               }}
             >
+              <p>{i + 1}.</p>
               <TextInput
                 value={heading}
                 onChange={(e) => {
@@ -90,7 +96,15 @@ export const Field = ({ value, onChange }: FieldProps<typeof controller>) => {
                 x
               </Button>
             </div>
-            <div style={{ padding: "0.5rem" }}>{desc}</div>
+            <TextArea
+              style={{ padding: "1rem", color: "grey" }}
+              value={desc}
+              onChange={(e) => {
+                const newData = [...data];
+                newData[i].desc = e.target.value;
+                setData(newData);
+              }}
+            />
           </div>
         ))}
         <div>

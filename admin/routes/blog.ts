@@ -1,47 +1,41 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { type Context } from ".keystone/types";
-import { JSONValue } from "@keystone-6/core/types";
+import { ArticleData } from "@extractus/article-extractor";
+import { generateHeadings } from "../lib/tasks/blog/generations";
 
-export async function createChildBlogAPI(
+export async function generateBlogHeadingsAPI(
   req: NextApiRequest,
   res: NextApiResponse,
   context: Context,
 ) {
-  if (!context.session?.data?.email) {
-    return res.status(401).json({ error: "Not logged in" });
-  }
-  if (!req.query.id) {
-    return res.status(400).json({ error: "Missing param: blog id" });
-  }
   try {
-    type Blog = {
-      id: string;
-      name: string;
-      store: { id: string };
-      blog: { document: JSONValue };
+    if (!context.session?.data?.email) {
+      return res.status(401).json({ error: "Not logged in" });
+    }
+    if (!req.query.id) {
+      return res.status(400).json({ error: "Missing param: blog id" });
+    }
+    const id = req.query.id as string;
+    const blog = (await context.query.BlogFromUrl.findOne({
+      where: { id },
+      query: "headingsInstruction refArticleData",
+    })) as unknown as {
+      headingsInstruction: string;
+      refArticleData: ArticleData;
     };
-    const ctx = context.sudo();
-    const blog = (await ctx.query.Blog.findOne({
-      where: { id: req.query.id as string },
-      query: "id name store { id } blog { document } parent { id name }",
-    })) as Blog & { parent?: Blog };
-    const parent: Blog = blog.parent ?? blog;
-    parent.blog = blog.blog;
-    parent.store = blog.store;
-    // console.log("blog:", blog);
 
-    const newBlog = await ctx.query.Blog.createOne({
-      data: {
-        name: `${parent.name}`,
-        store: { connect: { id: parent.store.id } },
-        parent: { connect: { id: parent.id } },
-        blog: parent.blog.document,
-      },
-      query: "id",
+    const headings = await generateHeadings({
+      inst: blog.headingsInstruction,
+      article: blog.refArticleData,
     });
-    return res.json({ message: "ok", id: newBlog.id });
+    await context.query.BlogFromUrl.updateOne({
+      where: { id },
+      data: { title: headings.title, headings: headings.headings },
+    });
+
+    res.json({ message: "ok" });
   } catch (e) {
     console.log(e);
-    return res.status(418).json({ error: e });
+    res.status(418).json({ error: e });
   }
 }

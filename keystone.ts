@@ -20,7 +20,7 @@ import {
   pushSEOTaskProductAPI,
 } from "./admin/routes/shopify";
 import { retrySEOTaskAPI } from "./admin/routes/tasks";
-import { createChildBlogAPI } from "./admin/routes/blog";
+import { generateBlogHeadingsAPI } from "./admin/routes/blog";
 
 function withContext<
   F extends (
@@ -55,7 +55,10 @@ export default withAuth(
         // retry task
         app.post("/api/seotask/retry", withContext(context, retrySEOTaskAPI));
         // create child blog
-        app.post("/api/blog/create", withContext(context, createChildBlogAPI));
+        app.post(
+          "/api/blog/generate-headings",
+          withContext(context, generateBlogHeadingsAPI),
+        );
       },
     },
     ui: {
@@ -76,7 +79,12 @@ export default withAuth(
               {
                 name: "SeoTask",
                 instruction:
-                  'You are a professional, Google-aligned SEO expert for shopify products. You will receive a list of product information. In this list, each product will have a title. Generate SEOTitle (50-60 words, using a format of adjective + attribute) and SEODescription (150-160 words) for each based on the product title. Append the generated fields to each product and keep other fields unchanged. Your response should be in a valid json array and strictly follow the type hint: `{"id": string, "SEOTitle": string, "SEODescription": string}[]`. Escape only double quotes in double quoted strings with back slashes (e.g. `{"SEOTitle":"5\" SIZE Product"}`), do not escape any other symbol inside strings, and no unnecessary space or new line in strings. Thank you and I will tip you $200',
+                  'You are a professional, Google-aligned SEO expert for shopify products. You will receive a list of product information. In this list, each product will have a title. Generate SEOTitle (50-60 words, using a format of adjective + attribute) and SEODescription (150-160 words) for each based on the product title. Append the generated fields to each product and keep other fields unchanged. Your response should be in a valid json array and strictly follow the type hint: `{"id": string, "SEOTitle": string, "SEODescription": string}[]`. Escape only double quotes in double quoted strings with back slashes (e.g. `{"SEOTitle":"5" SIZE Product"}`), do not escape any other symbol inside strings, and no unnecessary space or new line in strings. Thank you and I will tip you $200',
+              },
+              {
+                name: "BlogHeadings",
+                instruction:
+                  "to rewrite the given article to express the similar content but make it looks different, and ignoring all brands and urls at the same time, first, create the title, headings with brief descriptions for the new article in json format: { title: string; headings: { heading: string; desc: string }[] }",
               },
             ],
           });
@@ -108,4 +116,3 @@ export default withAuth(
     session,
   }),
 );
-

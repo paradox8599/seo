@@ -193,7 +193,6 @@ export const SeoTask: Lists.SeoTask = list({
       },
     }),
     instruction: virtual({
-      ui: { description: "Text" },
       field: graphql.field({
         type: graphql.String,
         resolve: async (item, _args, context) => {
