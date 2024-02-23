@@ -92,12 +92,12 @@ export default withAuth(
               {
                 name: "BlogHeadings",
                 instruction:
-                  "to rewrite the given article to express the similar content but make it looks different, and ignoring all brands and urls at the same time, first, create the title, headings with brief descriptions for the new article in json format: { title: string; headings: { heading: string; desc: string }[] }",
+                  "To rewrite the given article to express the similar content but make it looks different, and ignoring all brands and urls at the same time, first, create the title, headings with brief descriptions for the new article in json format: { title: string; headings: { heading: string; desc: string }[] }",
               },
               {
                 name: "BlogArticle",
                 instruction:
-                  "given the information, rewrite the article with the similar content but make it looks different, ignoring all brands and urls at the same time. Follow the provided structure specified in headings with their descriptions. The final output should be strictly in the json format, and all string contents are plain text with no html tags: { title: string; description: string; sections: { heading: string; content: string }[] } ",
+                  "Given the information, rewrite the article with the similar content but make it looks different, ignoring all brands and urls at the same time. Follow the provided structure specified in headings with their descriptions. The final output should be strictly in the json format, and all string contents are plain text with no html tags: { title: string; description: string; sections: { heading: string; content: string }[] } ",
               },
             ],
           });

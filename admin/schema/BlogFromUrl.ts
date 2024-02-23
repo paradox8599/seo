@@ -1,12 +1,20 @@
 import { graphql, list } from "@keystone-6/core";
 import { allowAll } from "@keystone-6/core/access";
-import { json, relationship, text, virtual } from "@keystone-6/core/fields";
+import {
+  integer,
+  json,
+  relationship,
+  text,
+  virtual,
+} from "@keystone-6/core/fields";
 
 import { isAdmin, isNotAdmin } from "../helpers/access";
 import { createdAtField, updatedAtField } from "../helpers/fields";
 import { type Lists } from ".keystone/types";
 import { JSONValue } from "@keystone-6/core/types";
 import { BlogArticle, BlogHeading } from "../lib/tasks/blog/blog";
+import { generateArticle } from "../lib/tasks/blog/generations";
+import { TaskStatus } from "../types/task";
 
 export const BlogFromUrl: Lists.BlogFromUrl = list({
   access: {
@@ -20,19 +28,50 @@ export const BlogFromUrl: Lists.BlogFromUrl = list({
   ui: {
     listView: {
       pageSize: 50,
+      initialColumns: ["name", "title", "status"],
     },
     hideCreate: isNotAdmin,
     hideDelete: isNotAdmin,
+  },
+  hooks: {
+    afterOperation: async ({ item, operation, context, resolvedData }) => {
+      if (operation === "update" && !!resolvedData.refArticleData) {
+        generateArticle({ id: item.id, context });
+      }
+    },
   },
   fields: {
     name: text(),
     createdAt: createdAtField(),
     updatedAt: updatedAtField(),
+    status: virtual({
+      field: graphql.field({
+        type: graphql.String,
+        resolve: async (item, _args, _context) => {
+          const headings = item.headings as BlogHeading[];
+          const article = item.article as BlogArticle;
+          let status = "Complete";
+          if (article.sections.length === 0) status = "Article not generated";
+          if (headings.length === 0) status = "Headings not generated";
+          return status;
+        },
+      }),
+      ui: {
+        itemView: { fieldMode: "read", fieldPosition: "sidebar" },
+      },
+    }),
+    // status: integer({
+    //   defaultValue: TaskStatus.idle,
+    //   ui: {
+    //     views: "./admin/views/task-status",
+    //     createView: { fieldMode: "hidden" },
+    //   },
+    // }),
     url: text({
       validation: { isRequired: true },
       ui: {
         description: "Url to the reference article",
-        itemView: { fieldMode: "read" },
+        itemView: { fieldMode: "read", fieldPosition: "sidebar" },
       },
       hooks: {
         afterOperation: async ({ item, operation, context }) => {

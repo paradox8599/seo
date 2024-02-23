@@ -61,6 +61,7 @@ export const Field = ({
     value,
     onChange,
   });
+  const [hide, setHide] = React.useState(true);
 
   return (
     <FieldContainer>
@@ -68,7 +69,10 @@ export const Field = ({
       <div style={{ marginBottom: "1rem" }}>
         <GenButton id={window.location.pathname.split("/")[2]} />
       </div>
-      <div>
+      <Button onClick={() => setHide(!hide)}>
+        {hide ? "Show" : "Hide"} Headings
+      </Button>
+      <div style={{ display: hide ? "none" : "block" }}>
         {data.map(({ heading, desc }, i) => (
           <div key={i.toString()} style={{}}>
             <div
