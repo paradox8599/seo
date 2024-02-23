@@ -20,7 +20,10 @@ import {
   pushSEOTaskProductAPI,
 } from "./admin/routes/shopify";
 import { retrySEOTaskAPI } from "./admin/routes/tasks";
-import { generateBlogHeadingsAPI } from "./admin/routes/blog";
+import {
+  generateBlogArticleAPI,
+  generateBlogHeadingsAPI,
+} from "./admin/routes/blog";
 
 function withContext<
   F extends (
@@ -54,10 +57,15 @@ export default withAuth(
         );
         // retry task
         app.post("/api/seotask/retry", withContext(context, retrySEOTaskAPI));
-        // create child blog
+        // generate blog headings
         app.post(
           "/api/blog/generate-headings",
           withContext(context, generateBlogHeadingsAPI),
+        );
+        // generate blog article
+        app.post(
+          "/api/blog/generate-article",
+          withContext(context, generateBlogArticleAPI),
         );
       },
     },
@@ -85,6 +93,11 @@ export default withAuth(
                 name: "BlogHeadings",
                 instruction:
                   "to rewrite the given article to express the similar content but make it looks different, and ignoring all brands and urls at the same time, first, create the title, headings with brief descriptions for the new article in json format: { title: string; headings: { heading: string; desc: string }[] }",
+              },
+              {
+                name: "BlogArticle",
+                instruction:
+                  "given the information, rewrite the article with the similar content but make it looks different, ignoring all brands and urls at the same time. Follow the provided structure specified in headings with their descriptions. The final output should be strictly in the json format, and all string contents are plain text with no html tags: { title: string; description: string; sections: { heading: string; content: string }[] } ",
               },
             ],
           });

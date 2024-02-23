@@ -6,6 +6,7 @@ import { isAdmin, isNotAdmin } from "../helpers/access";
 import { createdAtField, updatedAtField } from "../helpers/fields";
 import { type Lists } from ".keystone/types";
 import { JSONValue } from "@keystone-6/core/types";
+import { BlogArticle, BlogHeading } from "../lib/tasks/blog/blog";
 
 export const BlogFromUrl: Lists.BlogFromUrl = list({
   access: {
@@ -51,17 +52,20 @@ export const BlogFromUrl: Lists.BlogFromUrl = list({
       },
     }),
     title: text({
-      ui: { createView: { fieldMode: "hidden" } },
+      ui: {
+        description: "Auto generated with headings",
+        createView: { fieldMode: "hidden" },
+      },
     }),
     headings: json({
-      defaultValue: [],
+      defaultValue: [] as BlogHeading[],
       ui: {
         views: "./admin/views/blog-headings",
         createView: { fieldMode: "hidden" },
       },
     }),
     article: json({
-      defaultValue: { title: "", headings: [] },
+      defaultValue: { title: "", desc: "", sections: [] } as BlogArticle,
       ui: {
         views: "./admin/views/blog-article",
         createView: { fieldMode: "hidden" },

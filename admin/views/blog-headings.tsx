@@ -10,6 +10,7 @@ import {
 
 import React from "react";
 import { useJson } from "./hooks/useJson";
+import { BlogHeading } from "../lib/tasks/blog/blog";
 
 type BtnText = "Generate Headings" | "Generating";
 
@@ -51,8 +52,12 @@ function GenButton({ id }: { id: string }) {
   );
 }
 
-export const Field = ({ value, onChange,field }: FieldProps<typeof controller>) => {
-  const { data, setData } = useJson<{ heading: string; desc: string }[]>({
+export const Field = ({
+  value,
+  onChange,
+  field,
+}: FieldProps<typeof controller>) => {
+  const { data, setData } = useJson<BlogHeading[]>({
     value,
     onChange,
   });

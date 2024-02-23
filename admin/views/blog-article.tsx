@@ -5,6 +5,7 @@ import { FieldContainer, FieldLabel } from "@keystone-ui/fields";
 
 import React from "react";
 import { useJson } from "./hooks/useJson";
+import { BlogArticle } from "../lib/tasks/blog/blog";
 
 type BtnText = "Generate Article" | "Generating";
 
@@ -51,10 +52,7 @@ export const Field = ({
   onChange,
   field,
 }: FieldProps<typeof controller>) => {
-  const { data, setData } = useJson<{
-    title: string;
-    headings: { heading: string; desc: string }[];
-  }>({
+  const { data } = useJson<BlogArticle>({
     value,
     onChange,
   });
@@ -65,6 +63,16 @@ export const Field = ({
       <div style={{ marginBottom: "1rem" }}>
         <GenButton id={window.location.pathname.split("/")[2]} />
       </div>
+      <article>
+        <h2>{data.title}</h2>
+        <p>{data.desc}</p>
+        {data.sections.map((s, i) => (
+          <section key={i.toString()}>
+            <h3>{s.heading}</h3>
+            <p>{s.content}</p>
+          </section>
+        ))}
+      </article>
     </FieldContainer>
   );
 };
