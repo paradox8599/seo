@@ -1,7 +1,7 @@
 import { KeystoneContext } from "@keystone-6/core/types";
 
-import { resetSeoFileTasks, runSeoFileTask } from "./seo-file-task";
-import { resetSeoTasks, runSeoTask } from "./seo-task";
+import { resetSeoFileTasks, runSeoFileTask } from "./seo/seo-file-task";
+import { resetSeoTasks, runSeoTask } from "./seo/seo-task";
 
 export function chunkArray<T>({ arr, size }: { arr: T[]; size: number }) {
   return Array.from({ length: Math.ceil(arr.length / size) }, (_, i) =>

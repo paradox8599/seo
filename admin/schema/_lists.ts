@@ -1,4 +1,4 @@
-import { Blog } from "./Blog";
+import { BlogFromUrl } from "./BlogFromUrl";
 import { Collection } from "./Collection";
 import { Instruction } from "./Instruction";
 import { Product } from "./Products";
@@ -16,5 +16,5 @@ export const lists: Lists = {
   Product,
   SeoTask,
   SeoFileTask,
-  Blog,
+  BlogFromUrl,
 };

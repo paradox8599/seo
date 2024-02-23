@@ -10,7 +10,7 @@ import {
 
 import { BUCKET } from "../../src/lib/variables";
 import { createdAtField } from "../helpers/fields";
-import { s3 } from "../lib/tasks/s3";
+import { s3 } from "../lib/tasks/seo/s3";
 import { TaskQueue, Tasks } from "../lib/tasks/task-queue";
 import { TaskStatus } from "../types/task";
 import { type Lists } from ".keystone/types";

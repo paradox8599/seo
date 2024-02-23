@@ -1,8 +1,8 @@
 import { KeystoneContext } from "@keystone-6/core/types";
-import { ShopifyProduct, TaskStatus } from "../../types/task";
-import { askAll } from "../openai";
+import { ShopifyProduct, TaskStatus } from "../../../types/task";
+import { askAll } from "../../openai";
 
-import { TaskQueue, Tasks } from "./task-queue";
+import { TaskQueue, Tasks } from "../task-queue";
 import { type Context } from ".keystone/types";
 
 export async function resetSeoTasks(ctx: KeystoneContext) {

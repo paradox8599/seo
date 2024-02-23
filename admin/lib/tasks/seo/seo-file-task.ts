@@ -1,12 +1,12 @@
 import { KeystoneContext } from "@keystone-6/core/types";
-import { ShopifyProduct, TaskStatus } from "../../types/task";
 import { dumpCSV, parseCSV } from "../csv_manager";
-import { askAll } from "../openai";
 
-import { BUCKET } from "../../../src/lib/variables";
 import { s3 } from "./s3";
-import { TaskQueue, Tasks } from "./task-queue";
 import { type Context } from ".keystone/types";
+import { TaskStatus, ShopifyProduct } from "../../../types/task";
+import { askAll } from "../../openai";
+import { TaskQueue, Tasks } from "../task-queue";
+import { BUCKET } from "../../../../src/lib/variables";
 
 export type ShopifyCSVProduct = {
   id?: string;
