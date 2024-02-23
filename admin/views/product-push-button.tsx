@@ -18,6 +18,8 @@ function PushButton({ id }: { id: string }) {
         size="small"
         disabled={btn.disabled}
         onClick={async () => {
+          const push = confirm("Confirm pushing products to shopify?");
+          if (!push) return;
           setBtn({ text: "Pushing", disabled: true });
           const res = await fetch(`/api/product/push?id=${id}`, {
             method: "POST",

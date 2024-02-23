@@ -75,9 +75,6 @@ export const SeoTask: Lists.SeoTask = list({
           where: { id: item.id },
           data: { version },
         });
-        // add task to queue and update task status on create
-        // await setStatus({ context, id: item.id });
-        // TaskQueue.add(Tasks.SeoTask, { id: item.id, type: Tasks.SeoTask });
       },
       update: async ({ item, context }) => {
         // add task to queue and update task status on retry
@@ -127,6 +124,7 @@ export const SeoTask: Lists.SeoTask = list({
       },
     }),
     productCount: virtual({
+      ui: { itemView: { fieldPosition: "sidebar" } },
       field: graphql.field({
         type: graphql.Int,
         async resolve(item, _args, context) {
@@ -136,12 +134,12 @@ export const SeoTask: Lists.SeoTask = list({
               category: { contains: item.category },
               OR: item.collectionId
                 ? [
-                    {
-                      collections: {
-                        some: { id: { equals: item.collectionId } },
-                      },
+                  {
+                    collections: {
+                      some: { id: { equals: item.collectionId } },
                     },
-                  ]
+                  },
+                ]
                 : [],
               status: { equals: "ACTIVE" },
             },
@@ -178,17 +176,32 @@ export const SeoTask: Lists.SeoTask = list({
       },
     }),
     description: text({}),
+    inst: relationship({
+      ref: "Instruction",
+      many: false,
+      ui: {
+        description: "Select instruction",
+        itemView: { fieldMode: "read" },
+        hideCreate: true,
+      },
+      hooks: {
+        validateInput({ operation, addValidationError, resolvedData }) {
+          if (operation === "create" && !resolvedData.inst?.connect) {
+            addValidationError("Instruction is required");
+          }
+        },
+      },
+    }),
     instruction: virtual({
+      ui: { description: "Text" },
       field: graphql.field({
         type: graphql.String,
-        resolve: async (_item, _args, context) => {
-          const instructions = await context.query.Instruction.findMany({
-            where: { name: { equals: "SeoTask" } },
+        resolve: async (item, _args, context) => {
+          const instructions = await context.query.Instruction.findOne({
+            where: { id: item.instId },
             query: "instruction",
           });
-          if (instructions.length !== 1)
-            return "Instruction for [SeoTask] not found";
-          return instructions[0].instruction;
+          return instructions?.instruction ?? "";
         },
       }),
     }),

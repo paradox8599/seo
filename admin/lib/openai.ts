@@ -27,18 +27,19 @@ type ChatMessage = GeminiMessage | OpenAIMessage;
 export async function ask({
   prompt,
   instructions = [],
-  history,
+  history = [],
 }: {
   history?: ChatMessage[];
   prompt: string;
   instructions?: string[];
 }) {
-  const inst = instructions.map(
-    (i) => ({ role: "system", content: i }) as OpenAIMessage,
-  );
+  const inst: OpenAIMessage[] = instructions.map((i) => ({
+    role: "system",
+    content: i,
+  }));
   const chatResult = await getOpenAI().chat.completions.create({
     model: OPENAI.model,
-    messages: [...inst, ...(history ?? []), { role: "user", content: prompt }],
+    messages: [...inst, ...history, { role: "user", content: prompt }],
   });
   const finishReason = chatResult.choices[0].finish_reason;
   console.log("\n\nprompt:\n", JSON.stringify(prompt, null, 2));
@@ -72,9 +73,18 @@ export async function askAll({
   const answers = [];
   for (let i = 0; i < prepared.length; i++) {
     const prompt = prepared[i];
-    const answer = await ask({ instructions, prompt: JSON.stringify(prompt) });
-    const content = JSON.parse(answer ?? "[]");
-    answers.push(content);
+    let retryCount = 0;
+    while (retryCount < 3) {
+      try {
+        const a = await ask({ instructions, prompt: JSON.stringify(prompt) });
+        const content = JSON.parse(a ?? "[]");
+        answers.push(content);
+        break;
+      } catch (e) {
+        retryCount++;
+        console.log(`[Attempt ${retryCount}] ${e}`);
+      }
+    }
   }
   return answers;
 }
