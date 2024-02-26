@@ -1,20 +1,14 @@
 import { graphql, list } from "@keystone-6/core";
 import { allowAll } from "@keystone-6/core/access";
-import {
-  integer,
-  json,
-  relationship,
-  text,
-  virtual,
-} from "@keystone-6/core/fields";
+import { integer, json, text, virtual } from "@keystone-6/core/fields";
 
 import { isAdmin, isNotAdmin } from "../helpers/access";
 import { createdAtField, updatedAtField } from "../helpers/fields";
 import { type Lists } from ".keystone/types";
 import { JSONValue } from "@keystone-6/core/types";
-import { BlogArticle, BlogHeading } from "../lib/tasks/blog/blog";
-import { generateArticle } from "../lib/tasks/blog/generations";
+import { BlogArticle, BlogHeading } from "../lib/tasks/blog/blog-types";
 import { TaskStatus } from "../types/task";
+import { TaskQueue, Tasks } from "../lib/tasks/task-queue";
 
 export const BlogFromUrl: Lists.BlogFromUrl = list({
   access: {
@@ -34,9 +28,13 @@ export const BlogFromUrl: Lists.BlogFromUrl = list({
     hideDelete: isNotAdmin,
   },
   hooks: {
-    afterOperation: async ({ item, operation, context, resolvedData }) => {
-      if (operation === "update" && !!resolvedData.refArticleData) {
-        generateArticle({ id: item.id, context });
+    afterOperation: async ({ item, operation, context }) => {
+      if (operation === "create") {
+        await context.sudo().query.BlogFromUrl.updateOne({
+          where: { id: item.id },
+          data: { status: TaskStatus.pending },
+        });
+        TaskQueue.add(Tasks.BlogTask, { id: item.id });
       }
     },
   },
@@ -44,29 +42,14 @@ export const BlogFromUrl: Lists.BlogFromUrl = list({
     name: text(),
     createdAt: createdAtField(),
     updatedAt: updatedAtField(),
-    status: virtual({
-      field: graphql.field({
-        type: graphql.String,
-        resolve: async (item, _args, _context) => {
-          const headings = item.headings as BlogHeading[];
-          const article = item.article as BlogArticle;
-          let status = "Complete";
-          if (article.sections.length === 0) status = "Article not generated";
-          if (headings.length === 0) status = "Headings not generated";
-          return status;
-        },
-      }),
+    status: integer({
+      defaultValue: TaskStatus.idle,
       ui: {
+        views: "./admin/views/task-status",
+        createView: { fieldMode: "hidden" },
         itemView: { fieldMode: "read", fieldPosition: "sidebar" },
       },
     }),
-    // status: integer({
-    //   defaultValue: TaskStatus.idle,
-    //   ui: {
-    //     views: "./admin/views/task-status",
-    //     createView: { fieldMode: "hidden" },
-    //   },
-    // }),
     url: text({
       validation: { isRequired: true },
       ui: {

@@ -5,7 +5,7 @@ import { FieldContainer, FieldLabel } from "@keystone-ui/fields";
 
 import React from "react";
 import { useJson } from "./hooks/useJson";
-import { BlogArticle } from "../lib/tasks/blog/blog";
+import { BlogArticle } from "../lib/tasks/blog/blog-types";
 
 type BtnText = "Generate Article" | "Generating";
 

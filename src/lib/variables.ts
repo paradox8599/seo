@@ -1,6 +1,6 @@
 try {
   require("dotenv").config();
-} catch (e) {}
+} catch (e) { }
 
 // KeystoneJS server config
 type DB_PROVIDER_TYPE = "sqlite" | "mysql" | "postgresql";
@@ -31,11 +31,5 @@ export const OPENAI = {
   apiKey: process.env.OPENAI_API_KEY,
   model: process.env.OPENAI_MODEL ?? "gpt-3.5-turbo",
 };
-// export const OPENAI_ENDPOINT =
-//   (process.env.OPENAI_ENDPOINT ?? "").trim().length > 0
-//     ? new URL(process.env.OPENAI_ENDPOINT ?? "")
-//     : undefined;
-// export const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-// export const OPENAI_MODEL = process.env.OPENAI_MODEL ?? "gpt-3.5-turbo";
 
 export const SHOPIFY_API_VERSION = process.env.SHOPIFY_API_VERSION ?? "2024-01";

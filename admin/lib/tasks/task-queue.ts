@@ -1,11 +1,11 @@
 export type Task = {
   id: string;
-  type: Tasks;
 };
 
 export enum Tasks {
   SeoTask = "SeoTask",
   SeoFileTask = "SeoFileTask",
+  BlogTask = "BlogTask",
 }
 
 export class TaskQueue {
@@ -26,6 +26,7 @@ export class TaskQueue {
     if (!TaskQueue.q[name]) {
       TaskQueue.q[name] = [];
     }
+    if (TaskQueue.q[name].filter((t) => t.id === item.id).length > 0) return;
     TaskQueue.q[name].push(item);
   }
 

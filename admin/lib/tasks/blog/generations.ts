@@ -1,6 +1,6 @@
 import { ArticleData } from "@extractus/article-extractor";
 import { ask } from "../../openai";
-import { BlogArticle, BlogBrief, BlogHeading } from "./blog";
+import { BlogArticle, BlogBrief, BlogHeading } from "./blog-types";
 import { type Context } from ".keystone/types";
 
 export async function generateHeadings({

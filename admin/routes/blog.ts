@@ -1,6 +1,6 @@
 import { ArticleData } from "@extractus/article-extractor";
 import { NextApiRequest, NextApiResponse } from "next";
-import { BlogHeading } from "../lib/tasks/blog/blog";
+import { BlogHeading } from "../lib/tasks/blog/blog-types";
 import {
   generateArticle,
   generateHeadings,
@@ -60,6 +60,29 @@ export async function generateBlogArticleAPI(
     }
     // generate article
     await generateArticle({ id, context });
+    res.json({ message: "ok" });
+  } catch (e) {
+    console.log(e);
+    res.status(418).json({ error: e });
+  }
+}
+
+export async function bulkAddBlogUrlsAPI(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  context: Context,
+) {
+  if (!context.session?.data?.email) {
+    return res.status(401).json({ error: "Not logged in" });
+  }
+  if (!req.query.urls) {
+    return res.status(400).json({ error: "Missing param: blog urls" });
+  }
+  const urls = (req.query.urls as string).split(",");
+  try {
+    await context.query.BlogFromUrl.createMany({
+      data: urls.map((url) => ({ url })),
+    });
     res.json({ message: "ok" });
   } catch (e) {
     console.log(e);

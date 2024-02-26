@@ -10,7 +10,7 @@ import {
 
 import React from "react";
 import { useJson } from "./hooks/useJson";
-import { BlogHeading } from "../lib/tasks/blog/blog";
+import { BlogHeading } from "../lib/tasks/blog/blog-types";
 
 type BtnText = "Generate Headings" | "Generating";
 

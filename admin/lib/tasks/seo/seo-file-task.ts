@@ -1,4 +1,3 @@
-import { KeystoneContext } from "@keystone-6/core/types";
 import { dumpCSV, parseCSV } from "../csv_manager";
 
 import { s3 } from "./s3";
@@ -17,10 +16,8 @@ export type ShopifyCSVProduct = {
   Status: string;
 };
 
-export async function resetSeoFileTasks(ctx: KeystoneContext) {
-  const seoTaskIdResults = (await (
-    ctx.sudo() as unknown as Context
-  ).query.SeoFileTask.findMany({
+export async function resetSeoFileTasks(ctx: Context) {
+  const seoTaskIdResults = (await ctx.sudo().query.SeoFileTask.findMany({
     where: { status: { in: [TaskStatus.pending, TaskStatus.running] } },
     query: "id",
   })) as { id: string }[];
@@ -33,8 +30,8 @@ export async function resetSeoFileTasks(ctx: KeystoneContext) {
   });
 }
 
-export async function runSeoFileTask(context: KeystoneContext) {
-  const ctx = context.sudo() as unknown as Context;
+export async function runSeoFileTask(context: Context) {
+  const ctx = context.sudo();
   const task = TaskQueue.consume(Tasks.SeoFileTask);
   if (!task) return;
   // log

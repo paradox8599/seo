@@ -84,7 +84,7 @@ export const SeoTask: Lists.SeoTask = list({
             (t) => t.id === item.id,
           );
           if (exists.length === 0 && item.status !== TaskStatus.pending) {
-            TaskQueue.add(Tasks.SeoTask, { id: item.id, type: Tasks.SeoTask });
+            TaskQueue.add(Tasks.SeoTask, { id: item.id });
           }
         }
       },
@@ -94,7 +94,7 @@ export const SeoTask: Lists.SeoTask = list({
     // sidebar
     createdAt: createdAtField(),
     status: integer({
-      defaultValue: 0,
+      defaultValue: TaskStatus.idle,
       ui: {
         views: "./admin/views/task-status",
         createView: { fieldMode: "hidden" },
@@ -103,7 +103,7 @@ export const SeoTask: Lists.SeoTask = list({
     }),
     retry: checkbox({
       ui: {
-        views: "./admin/views/task-retry-button",
+        views: "./admin/views/seo-task-start-button",
         createView: { fieldMode: "hidden" },
         itemView: { fieldPosition: "sidebar" },
         description: "Do not retry when already running",

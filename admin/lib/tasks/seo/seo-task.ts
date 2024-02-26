@@ -1,14 +1,11 @@
-import { KeystoneContext } from "@keystone-6/core/types";
 import { ShopifyProduct, TaskStatus } from "../../../types/task";
 import { askAll } from "../../openai";
 
 import { TaskQueue, Tasks } from "../task-queue";
 import { type Context } from ".keystone/types";
 
-export async function resetSeoTasks(ctx: KeystoneContext) {
-  const seoTaskIdResults = (await (
-    ctx.sudo() as unknown as Context
-  ).query.SeoTask.findMany({
+export async function resetSeoTasks(ctx: Context) {
+  const seoTaskIdResults = (await ctx.sudo().query.SeoTask.findMany({
     where: { status: { in: [TaskStatus.pending, TaskStatus.running] } },
     query: "id",
   })) as { id: string }[];
@@ -21,8 +18,8 @@ export async function resetSeoTasks(ctx: KeystoneContext) {
   });
 }
 
-export async function runSeoTask(context: KeystoneContext) {
-  const ctx = context.sudo() as unknown as Context;
+export async function runSeoTask(context: Context) {
+  const ctx = context.sudo();
   const task = TaskQueue.consume(Tasks.SeoTask);
   if (!task) return;
 
@@ -70,12 +67,12 @@ export async function runSeoTask(context: KeystoneContext) {
         category: { contains: taskInfo.category },
         OR: taskInfo.collection?.id
           ? [
-              {
-                collections: {
-                  some: { id: { equals: taskInfo.collection.id } },
-                },
+            {
+              collections: {
+                some: { id: { equals: taskInfo.collection.id } },
               },
-            ]
+            },
+          ]
           : [],
         status: { equals: "ACTIVE" },
       },

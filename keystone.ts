@@ -19,8 +19,9 @@ import {
   pushProductAPI,
   pushSEOTaskProductAPI,
 } from "./admin/routes/shopify";
-import { retrySEOTaskAPI } from "./admin/routes/tasks";
+import { retrySEOTaskAPI } from "./admin/routes/seo-tasks";
 import {
+  bulkAddBlogUrlsAPI,
   generateBlogArticleAPI,
   generateBlogHeadingsAPI,
 } from "./admin/routes/blog";
@@ -66,6 +67,10 @@ export default withAuth(
         app.post(
           "/api/blog/generate-article",
           withContext(context, generateBlogArticleAPI),
+        );
+        app.post(
+          "/api/blog/bulk-add",
+          withContext(context, bulkAddBlogUrlsAPI),
         );
       },
     },
