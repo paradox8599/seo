@@ -89,7 +89,7 @@ export const BlogFromUrl: Lists.BlogFromUrl = list({
     article: json({
       defaultValue: { title: "", desc: "", sections: [] } as BlogArticle,
       ui: {
-        views: "./admin/views/blog-article",
+        views: "./admin/views/blog-article-view",
         createView: { fieldMode: "hidden" },
       },
     }),
