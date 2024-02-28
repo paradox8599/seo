@@ -4,6 +4,7 @@ import {
   json,
   relationship,
   text,
+  timestamp,
   virtual,
 } from "@keystone-6/core/fields";
 
@@ -16,7 +17,7 @@ export const Product: Lists.Product = list({
   ui: {
     isHidden: isNotAdmin,
     listView: {
-      initialSort: { field: "updatedAt", direction: "DESC" },
+      initialSort: { field: "productUpdatedAt", direction: "DESC" },
       initialColumns: [
         "title",
         "category",
@@ -24,8 +25,7 @@ export const Product: Lists.Product = list({
         "SEOTitle",
         "SEODescription",
         "store",
-        "status",
-        "version",
+        "productUpdatedAt",
       ],
       pageSize: 50,
     },
@@ -81,6 +81,18 @@ export const Product: Lists.Product = list({
         views: "./admin/views/product-push-button",
         createView: { fieldMode: "hidden" },
         itemView: { fieldPosition: "sidebar" },
+      },
+    }),
+    productcreatedAt: timestamp({
+      ui: {
+        createView: { fieldMode: "hidden" },
+        itemView: { fieldMode: "read", fieldPosition: "sidebar" },
+      },
+    }),
+    productUpdatedAt: timestamp({
+      ui: {
+        createView: { fieldMode: "hidden" },
+        itemView: { fieldMode: "read", fieldPosition: "sidebar" },
       },
     }),
     createdAt: createdAtField(),

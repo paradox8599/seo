@@ -80,6 +80,8 @@ export async function getProducts({
               id
               title
               status
+              createdAt
+              updatedAt
               seo {
                 title
                 description

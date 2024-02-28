@@ -13,13 +13,15 @@ export async function pushSEOProducts({
     // query seo task info
     const task = (await context.query.SeoTask.findOne({
       where: { id: taskId },
-      query: "store { id version } category version status",
+      query: "store { id version } category version status after",
     })) as {
       store: { id: string; version: number };
       category: string;
       version: number;
       status: TaskStatus;
+      after: Date | null;
     };
+    task.after = new Date(task.after ?? 0);
 
     // check if task is completed
     if (task.status !== TaskStatus.success) {
@@ -33,8 +35,8 @@ export async function pushSEOProducts({
     // query products by task
     const products = (await context.query.Product.findMany({
       where: {
+        productUpdatedAt: { gt: task.after },
         store: { id: { equals: task.store.id } },
-        // category: { equals: task.category },
         OR:
           task.category.trim() === ""
             ? []

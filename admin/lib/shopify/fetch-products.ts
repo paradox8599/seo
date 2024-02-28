@@ -6,6 +6,8 @@ type ProductData = {
   id: string;
   title: string | null;
   status: string | null;
+  createdAt: string;
+  updatedAt: string;
   seo: { title: string | null; description: string | null };
   collections: { edges: { node: { title: string } }[] };
   productCategory: {
@@ -114,6 +116,8 @@ export async function fetchAllProducts(
     await context.sudo().query.Product.createMany({
       data: connectedProducts.map((p) => ({
         shopifyId: p.id,
+        productUpdatedAt: p.updatedAt,
+        productcreatedAt: p.createdAt,
         title: p.title ?? "",
         store: { connect: { id: store.id } },
         category: p.productCategory?.productTaxonomyNode?.fullName ?? "None",

@@ -51,20 +51,25 @@ export async function runSeoTask(context: Context) {
     // take seo task info
     const taskInfo = (await ctx.query.SeoTask.findOne({
       where: { id: task.id },
-      query: "store { id version } collection { id } category instruction",
+      query:
+        "store { id version } collection { id } category instruction after",
     })) as {
       store: { id: string; version: number };
       collection: null | { id: string };
       category: string;
       instruction: string;
+      after: Date | null;
     };
+
+    taskInfo.after = new Date(taskInfo.after ?? 0);
     const newVersion = taskInfo.store.version + 1;
 
-    // find products by store and category
+    // find products by task requirement
     const products = (await ctx.query.Product.findMany({
       where: {
         store: { id: { equals: taskInfo.store.id } },
         category: { contains: taskInfo.category },
+        productUpdatedAt: { gt: taskInfo.after },
         OR: taskInfo.collection?.id
           ? [
             {

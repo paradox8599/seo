@@ -5,6 +5,7 @@ import {
   json,
   relationship,
   text,
+  timestamp,
   virtual,
 } from "@keystone-6/core/fields";
 
@@ -131,6 +132,7 @@ export const SeoTask: Lists.SeoTask = list({
           return await context.query.Product.count({
             where: {
               store: { id: { equals: item.storeId } },
+              productUpdatedAt: { gt: item.after ?? new Date(0) },
               category: { contains: item.category },
               OR: item.collectionId
                 ? [
@@ -173,6 +175,12 @@ export const SeoTask: Lists.SeoTask = list({
       ui: {
         createView: { fieldMode: "hidden" },
         itemView: { fieldMode: "read" },
+      },
+    }),
+    after: timestamp({
+      ui: {
+        description: "Select only products updated after this date",
+        itemView: { fieldMode: "read", fieldPosition: "sidebar" },
       },
     }),
     description: text({}),
