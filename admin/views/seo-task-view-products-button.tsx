@@ -41,7 +41,6 @@ export const Field = ({ itemValue }: FieldProps<typeof controller>) => {
     version: { value: { value: number } };
     status: { value: { value: number } };
   };
-  console.log(itemValue);
   return (
     <FieldContainer>
       <ProductsButton

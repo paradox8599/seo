@@ -6,6 +6,8 @@ create `.env` file for development:
 
 ```sh
 KS_PORT=3000
+# at least 32 characters
+SESSION_SECRET=
 
 # sqlite | mysql | postgresql
 DB_PROVIDER="postgresql"

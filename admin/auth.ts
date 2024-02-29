@@ -15,16 +15,12 @@
 // If you want to learn more about how our out-of-the-box authentication works, please
 // read https://keystonejs.com/docs/apis/auth#authentication-api
 
-import { randomBytes } from "crypto";
 import { createAuth } from "@keystone-6/auth";
 
 // see https://keystonejs.com/docs/apis/session for the session docs
 import { statelessSessions } from "@keystone-6/core/session";
 import { Role } from "../src/lib/types/auth";
-
-// for a stateless session, a SESSION_SECRET should always be provided
-//   especially in production (statelessSessions will throw if SESSION_SECRET is undefined)
-const sessionSecret = randomBytes(32).toString("hex");
+import { KS_SESSION_SECRET } from "../src/lib/variables";
 
 // withAuth is a function we can use to wrap our base configuration
 const { withAuth } = createAuth({
@@ -61,7 +57,7 @@ const sessionMaxAge = 60 * 60 * 24 * 30;
 // you can find out more at https://keystonejs.com/docs/apis/session#session-api
 const session = statelessSessions({
   maxAge: sessionMaxAge,
-  secret: sessionSecret,
+  secret: KS_SESSION_SECRET,
 });
 
-export { withAuth, session };
+export { session, withAuth };

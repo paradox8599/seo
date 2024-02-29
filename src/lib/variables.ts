@@ -1,3 +1,5 @@
+import { randomBytes } from "crypto";
+
 try {
   require("dotenv").config();
 } catch (e) { }
@@ -6,6 +8,9 @@ try {
 type DB_PROVIDER_TYPE = "sqlite" | "mysql" | "postgresql";
 
 export const KS_PORT = parseInt(process.env.KS_PORT || "3000");
+
+export const KS_SESSION_SECRET =
+  process.env.SESSION_SECRET || randomBytes(32).toString("hex");
 
 export const DB_PROVIDER: DB_PROVIDER_TYPE =
   (process.env.DB_PROVIDER as DB_PROVIDER_TYPE) || "sqlite";

@@ -49,8 +49,11 @@ export const Product: Lists.Product = list({
       many: true,
       ui: { itemView: { fieldMode: "read" } },
     }),
-    SEOTitle: text({}),
-    SEODescription: text({ ui: { displayMode: "textarea" } }),
+    SEOTitle: text({ isFilterable: false }),
+    SEODescription: text({
+      isFilterable: false,
+      ui: { displayMode: "textarea" },
+    }),
     ImgAltText: virtual({
       ui: { description: "Same as SEO Title" },
       field: graphql.field({
@@ -77,13 +80,14 @@ export const Product: Lists.Product = list({
       ui: { itemView: { fieldPosition: "sidebar", fieldMode: "read" } },
     }),
     push: integer({
+      isFilterable: false,
       ui: {
         views: "./admin/views/product-push-button",
         createView: { fieldMode: "hidden" },
         itemView: { fieldPosition: "sidebar" },
       },
     }),
-    productcreatedAt: timestamp({
+    productCreatedAt: timestamp({
       ui: {
         createView: { fieldMode: "hidden" },
         itemView: { fieldMode: "read", fieldPosition: "sidebar" },

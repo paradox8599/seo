@@ -6,7 +6,6 @@ import { Button } from "@keystone-ui/button";
 import React from "react";
 
 export const Field = ({ itemValue }: FieldProps<typeof controller>) => {
-  console.log(itemValue);
   const url = `/products?%21store_matches="${window.location.pathname.split("/")[2]}"`;
   return (
     <FieldContainer>
