@@ -9,21 +9,18 @@ export function chunkArray<T>({ arr, size }: { arr: T[]; size: number }) {
   );
 }
 
-let started = false;
 export async function start(ctx: Context) {
-  if (started) return;
-  started = true;
-
   // reset seo tasks status
   await resetSeoFileTasks(ctx);
   await resetSeoTasks(ctx);
   await resetBlogTasks(ctx);
 
-  console.log("AI tasks started");
+  console.log("✅ AI tasks started");
+  const tasks = [runSeoFileTask, runSeoTask, runBlogTask];
   while (true) {
-    await runSeoFileTask(ctx);
-    await runSeoTask(ctx);
-    await runBlogTask(ctx);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    for (const task of tasks) {
+      await task(ctx);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 3000));
   }
 }

@@ -84,7 +84,7 @@ export const SeoTask: Lists.SeoTask = list({
           const exists = TaskQueue.get(Tasks.SeoTask).filter(
             (t) => t.id === item.id,
           );
-          if (exists.length === 0 && item.status !== TaskStatus.pending) {
+          if (exists.length === 0) {
             TaskQueue.add(Tasks.SeoTask, { id: item.id });
           }
         }

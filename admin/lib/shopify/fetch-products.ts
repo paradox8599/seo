@@ -117,7 +117,7 @@ export async function fetchAllProducts(
       data: connectedProducts.map((p) => ({
         shopifyId: p.id,
         productUpdatedAt: p.updatedAt,
-        productcreatedAt: p.createdAt,
+        productCreatedAt: p.createdAt,
         title: p.title ?? "",
         store: { connect: { id: store.id } },
         category: p.productCategory?.productTaxonomyNode?.fullName ?? "None",

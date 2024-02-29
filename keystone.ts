@@ -75,6 +75,7 @@ export default withAuth(
       },
     },
     ui: {
+      publicPages: [],
       // fix: AdminMeta access denied when login to admin ui
       isAccessAllowed: (ctx) => !!ctx.session?.itemId,
     },
@@ -107,7 +108,7 @@ export default withAuth(
             ],
           });
         }
-        // NOTE: start AI tasks
+        // NOTE: start listening to AI tasks
         start(context);
       },
     },
