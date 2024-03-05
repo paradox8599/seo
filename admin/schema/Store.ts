@@ -1,5 +1,5 @@
-import { list } from "@keystone-6/core";
-import { integer, relationship, text } from "@keystone-6/core/fields";
+import { graphql, list } from "@keystone-6/core";
+import { integer, relationship, text, virtual } from "@keystone-6/core/fields";
 
 import { createdAtField, updatedAtField } from "../helpers/fields";
 import { type Lists } from ".keystone/types";
@@ -53,10 +53,27 @@ export const Store: Lists.Store = list({
         createView: { fieldMode: "hidden" },
       },
     }),
-    users: relationship({ ref: "User", many: true }),
+    // users: relationship({ ref: "User", many: true }),
+    label: virtual({
+      field: graphql.field({
+        type: graphql.String,
+        resolve: (item) => item.alias || item.name,
+      }),
+    }),
     alias: text({}),
-    name: text({ validation: { isRequired: true } }),
-    adminAccessToken: text({ validation: { isRequired: true } }),
+    name: text({
+      validation: { isRequired: true },
+      ui: {
+        description:
+          "Store name in shopify admin page url: https://admin.shopify.com/store/<store name>",
+      },
+    }),
+    adminAccessToken: text({
+      validation: { isRequired: true },
+      ui: {
+        description: "Requires permissions: read_products & write_products",
+      },
+    }),
     version: integer({
       defaultValue: 0,
       ui: {
@@ -80,13 +97,13 @@ export const Store: Lists.Store = list({
         createView: { fieldMode: "hidden" },
       },
     }),
-    background: text({
-      ui: {
-        description:
-          "Store background information (try asking: https://gemini.google.com/app to conclude it)",
-        displayMode: "textarea",
-      },
-    }),
+    // background: text({
+    //   ui: {
+    //     description:
+    //       "Store background information (try asking: https://gemini.google.com/app to conclude it)",
+    //     displayMode: "textarea",
+    //   },
+    // }),
 
     createdAt: createdAtField(),
     updatedAt: updatedAtField(),

@@ -56,8 +56,8 @@ export async function fetchAllProducts(
         first: 250,
         after,
       });
-      if (data?.data?.errors || !data?.data?.products) {
-        throw new Error(JSON.stringify(data?.data?.errors));
+      if (data?.errors || data?.data?.errors || !data?.data?.products) {
+        throw JSON.stringify(data?.errors ?? data?.data?.errors);
       }
       after = data.data.products.pageInfo.endCursor;
 

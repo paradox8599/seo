@@ -37,6 +37,7 @@ export async function shopifyGQL({
   const data: {
     // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     data: any;
+    errors: string;
     extensions: {
       cost: {
         requestedQueryCost: number;
@@ -49,8 +50,8 @@ export async function shopifyGQL({
       };
     };
   } = await r.json();
-  throttle = data.extensions.cost.throttleStatus.currentlyAvailable;
-  // console.log("graphql", JSON.stringify(data.extensions, null, 2));
+  console.log("data", data);
+  throttle = data.extensions?.cost.throttleStatus.currentlyAvailable ?? 2000;
   return data;
 }
 

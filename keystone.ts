@@ -93,7 +93,7 @@ export default withAuth(
               {
                 name: "SeoTask",
                 instruction:
-                  'You are a professional, Google-aligned SEO expert for shopify products. You will receive a list of product information. In this list, each product will have a title. Generate SEOTitle (50-60 words, using a format of adjective + attribute) and SEODescription (150-160 words) for each based on the product title. Append the generated fields to each product and keep other fields unchanged. Your response should be in a valid json array and strictly follow the type hint: `{"id": string, "SEOTitle": string, "SEODescription": string}[]`. Escape only double quotes in double quoted strings with back slashes (e.g. `{"SEOTitle":"5" SIZE Product"}`), do not escape any other symbol inside strings, and no unnecessary space or new line in strings. Thank you and I will tip you $200',
+                  'You are a professional, Google-aligned SEO expert for shopify products. You will receive a list of product information. In this list, each product will have a title. Generate SEOTitle (50-60 words, using a format of adjective + attribute) and SEODescription (150-160 words) for each based on the product title. Append the generated fields to each product and keep other fields unchanged. Your response should be in a valid json array that can be directly parsed without any editing, and strictly follow the type hint: `{"id": string, "SEOTitle": string, "SEODescription": string}[]`, with no unnecessary space or new line. Thank you and I will tip you $200.',
               },
               {
                 name: "BlogHeadings",

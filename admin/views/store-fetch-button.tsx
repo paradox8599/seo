@@ -25,8 +25,7 @@ function FetchButton({ id }: { id: string }) {
           const data = await res.json();
           setBtn({ text: "Fetch Products", disabled: false });
           if (data.error) {
-            console.log(data.error);
-            alert(JSON.stringify(data.error));
+            alert(`Error \n${JSON.parse(data.error)}`);
             return;
           }
           if (data.message === "ok") {

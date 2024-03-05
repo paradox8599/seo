@@ -23,7 +23,6 @@ export async function fetchAllProductsAPI(
     );
     return res.json({ message: "ok" });
   } catch (e) {
-    console.log(e);
     return res.status(418).json({ error: e });
   }
 }
@@ -78,5 +77,5 @@ export async function pushSEOTaskProductAPI(
   try {
     await pushSEOProducts({ taskId: req.query.id as string, context });
     return res.json({ message: "ok" });
-  } catch (e) {}
+  } catch (e) { }
 }
