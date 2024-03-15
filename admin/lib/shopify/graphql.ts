@@ -50,7 +50,6 @@ export async function shopifyGQL({
       };
     };
   } = await r.json();
-  console.log("data", data);
   throttle = data.extensions?.cost.throttleStatus.currentlyAvailable ?? 2000;
   return data;
 }
