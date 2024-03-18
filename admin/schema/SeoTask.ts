@@ -179,7 +179,7 @@ export const SeoTask: Lists.SeoTask = list({
     }),
     after: timestamp({
       ui: {
-        description: "Select only products updated after this date",
+        description: "Select only products created after this date",
         itemView: { fieldMode: "read", fieldPosition: "sidebar" },
       },
     }),

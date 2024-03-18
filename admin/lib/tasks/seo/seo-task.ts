@@ -69,7 +69,7 @@ export async function runSeoTask(context: Context) {
       where: {
         store: { id: { equals: taskInfo.store.id } },
         category: { contains: taskInfo.category },
-        productUpdatedAt: { gt: taskInfo.after },
+        productCreatedAt: { gt: taskInfo.after },
         OR: taskInfo.collection?.id
           ? [
             {
