@@ -60,6 +60,12 @@ export const Store: Lists.Store = list({
         resolve: (item) => item.alias || item.name,
       }),
     }),
+    storeUrl: virtual({
+      field: graphql.field({
+        type: graphql.String,
+        resolve: (item) => `https://admin.shopify.com/store/${item.name}`,
+      }),
+    }),
     alias: text({}),
     name: text({
       validation: { isRequired: true },
