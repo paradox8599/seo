@@ -59,6 +59,19 @@ function Summary({ orders }: { orders: Order[] }) {
     [firstOrders],
   );
 
+  const sessions = React.useMemo(() => {
+    return firstOrders.reduce(
+      (acc, order) => {
+        const s =
+          order.customerJourneySummary?.momentsCount?.toString() ?? "unknown";
+        acc[s] ??= [];
+        acc[s].push(order);
+        return acc;
+      },
+      {} as { [key: string]: Order[] },
+    );
+  }, [firstOrders]);
+
   return (
     <div className="summary">
       <style>{`
@@ -80,8 +93,16 @@ function Summary({ orders }: { orders: Order[] }) {
           {Math.floor((firstOrders.length / orders.length) * 100)}%)
         </span>
       </p>
-      <div style={{ display: "flex", alignItems: "start", gap: "1rem" }}>
+      <div
+        style={{
+          display: "grid",
+          gridAutoColumns: "auto auto",
+          alignItems: "start",
+          gap: "1rem",
+        }}
+      >
         <div>
+          <span>First Order Sources</span>
           <table>
             <tr>
               <th>Source</th>
@@ -103,7 +124,9 @@ function Summary({ orders }: { orders: Order[] }) {
             ))}
           </table>
         </div>
+
         <div>
+          <span>State Distribution</span>
           <table>
             <tr>
               <th>State</th>
@@ -116,6 +139,26 @@ function Summary({ orders }: { orders: Order[] }) {
                 <td>{states[state].length}</td>
                 <td>
                   {Math.floor((states[state].length / orders.length) * 100)}%
+                </td>
+              </tr>
+            ))}
+          </table>
+        </div>
+
+        <div>
+          <span>Sessions before ordering</span>
+          <table>
+            <tr>
+              <th>Sessions</th>
+              <th>Count</th>
+              <th>%</th>
+            </tr>
+            {Object.keys(sessions).map((s) => (
+              <tr key={s}>
+                <td>{s}</td>
+                <td>{sessions[s].length}</td>
+                <td>
+                  {Math.floor((sessions[s].length / orders.length) * 100)}%
                 </td>
               </tr>
             ))}

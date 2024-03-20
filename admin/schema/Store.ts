@@ -42,6 +42,12 @@ export const Store: Lists.Store = list({
     },
   },
   fields: {
+    orderSummary: json({
+      ui: {
+        createView: { fieldMode: "hidden" },
+        views: "./admin/views/store-order-summary",
+      },
+    }),
     fetchProducts: integer({
       ui: {
         createView: { fieldMode: "hidden" },
@@ -107,12 +113,6 @@ export const Store: Lists.Store = list({
       ui: {
         itemView: { fieldMode: "hidden" },
         createView: { fieldMode: "hidden" },
-      },
-    }),
-    orderSummary: json({
-      ui: {
-        createView: { fieldMode: "hidden" },
-        views: "./admin/views/store-order-summary",
       },
     }),
     createdAt: createdAtField(),
