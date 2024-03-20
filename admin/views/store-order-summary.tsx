@@ -109,19 +109,24 @@ function Summary({ orders }: { orders: Order[] }) {
               <th>First Order</th>
               <th>%</th>
             </tr>
-            {Object.keys(firstOrderSources).map((source) => (
-              <tr key={source}>
-                <td>{source}</td>
-                <td>{firstOrderSources[source].length}</td>
-                <td>
-                  {Math.floor(
-                    (firstOrderSources[source].length / firstOrders.length) *
-                    100,
-                  )}
-                  %
-                </td>
-              </tr>
-            ))}
+            {Object.keys(firstOrderSources)
+              .toSorted(
+                (a, b) =>
+                  firstOrderSources[b].length - firstOrderSources[a].length,
+              )
+              .map((source) => (
+                <tr key={source}>
+                  <td>{source}</td>
+                  <td>{firstOrderSources[source].length}</td>
+                  <td>
+                    {Math.floor(
+                      (firstOrderSources[source].length / firstOrders.length) *
+                      100,
+                    )}
+                    %
+                  </td>
+                </tr>
+              ))}
           </table>
         </div>
 
@@ -133,15 +138,17 @@ function Summary({ orders }: { orders: Order[] }) {
               <th>Count</th>
               <th>%</th>
             </tr>
-            {Object.keys(states).map((state) => (
-              <tr key={state}>
-                <td>{state}</td>
-                <td>{states[state].length}</td>
-                <td>
-                  {Math.floor((states[state].length / orders.length) * 100)}%
-                </td>
-              </tr>
-            ))}
+            {Object.keys(states)
+              .toSorted((a, b) => states[b].length - states[a].length)
+              .map((state) => (
+                <tr key={state}>
+                  <td>{state}</td>
+                  <td>{states[state].length}</td>
+                  <td>
+                    {Math.floor((states[state].length / orders.length) * 100)}%
+                  </td>
+                </tr>
+              ))}
           </table>
         </div>
 

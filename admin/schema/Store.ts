@@ -89,7 +89,8 @@ export const Store: Lists.Store = list({
     adminAccessToken: text({
       validation: { isRequired: true },
       ui: {
-        description: "Requires permissions: read_products & write_products",
+        description:
+          "Requires permissions: read_products, write_products, read_orders",
       },
     }),
     version: integer({
