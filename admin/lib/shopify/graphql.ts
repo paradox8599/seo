@@ -1,8 +1,21 @@
+import { Moment } from "moment";
 import { SHOPIFY_API_VERSION } from "../../../src/lib/variables";
+import { ProductData } from "./fetch-products";
 
-let throttle = 2000;
+const throttles: { [store: string]: number } = {};
 
-export async function shopifyGQL({
+let throttleAddup: NodeJS.Timeout | undefined;
+
+function setThrottle(store: string, throttle: number) {
+  throttles[store] = throttle;
+}
+
+function getThrottle(store: string) {
+  throttles[store] ??= 2000;
+  return throttles[store];
+}
+
+export async function shopifyGQL<T>({
   store,
   adminAccessToken,
   query,
@@ -14,7 +27,14 @@ export async function shopifyGQL({
   variables?: any;
   adminAccessToken: string;
 }) {
-  while (throttle < 1500) {
+  if (throttleAddup === void 0) {
+    throttleAddup = setInterval(() => {
+      for (const store of Object.keys(throttles)) {
+        throttles[store] = Math.min(throttles[store] + 100, 2000);
+      }
+    }, 1000);
+  }
+  while (getThrottle(store) < 1200) {
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
   const r = await fetch(
@@ -35,8 +55,7 @@ export async function shopifyGQL({
     },
   );
   const data: {
-    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-    data: any;
+    data: { errors: unknown } & T;
     errors: string;
     extensions: {
       cost: {
@@ -50,22 +69,29 @@ export async function shopifyGQL({
       };
     };
   } = await r.json();
-  throttle = data.extensions?.cost.throttleStatus.currentlyAvailable ?? 2000;
+  const throttle =
+    data.extensions?.cost.throttleStatus.currentlyAvailable ?? 2000;
+  setThrottle(store, throttle);
   return data;
 }
 
 export async function getProducts({
   store,
   adminAccessToken,
-  first,
+  first = 250,
   after,
 }: {
   store: string;
   adminAccessToken: string;
-  first: number;
+  first?: number;
   after?: string;
 }) {
-  return await shopifyGQL({
+  return await shopifyGQL<{
+    products: {
+      pageInfo: { hasNextPage: boolean; endCursor: string | null };
+      edges: { node: ProductData }[];
+    };
+  }>({
     store,
     adminAccessToken,
     query: /* GraphQL */ `
@@ -91,7 +117,7 @@ export async function getProducts({
                   fullName
                 }
               }
-              collections(first: 100) {
+              collections(first: 250) {
                 edges {
                   node {
                     title
@@ -139,5 +165,79 @@ export async function pushProduct({
       title: product.SEOTitle,
       description: product.SEODescription,
     },
+  });
+}
+
+export type Order = {
+  createdAt: string;
+  billingAddress: {
+    countryCodeV2: string | null;
+    provinceCode: string | null;
+  } | null;
+  customerJourneySummary: {
+    customerOrderIndex: number | null;
+    daysToConversion: number | null;
+    momentsCount: number | null;
+    firstVisit: { source: string | null } | null;
+  } | null;
+};
+
+export async function getOrders({
+  store,
+  adminAccessToken,
+  first = 250,
+  after,
+  from,
+  to,
+}: {
+  store: string;
+  adminAccessToken: string;
+  first?: number;
+  after?: string;
+  from: Moment;
+  to: Moment;
+}) {
+  return await shopifyGQL<{
+    orders: {
+      pageInfo: { hasNextPage: boolean; endCursor: string | null };
+      edges: { node: Order }[];
+    };
+  }>({
+    store,
+    adminAccessToken,
+    query: /* GraphQL */ `
+      query OrderSummary($first: Int!, $after: String) {
+        orders(
+          first: $first
+          after: $after
+          sortKey: CREATED_AT
+          reverse: true
+          query: "created_at:>'${from.toISOString()}' AND created_at:<'${to.toISOString()}'"
+        ) {
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+          edges {
+            node {
+              createdAt
+              billingAddress {
+                countryCodeV2
+                provinceCode
+              }
+              customerJourneySummary {
+                customerOrderIndex
+                daysToConversion
+                momentsCount
+                firstVisit {
+                  source
+                }
+              }
+            }
+          }
+        }
+      }
+    `,
+    variables: { first, after },
   });
 }

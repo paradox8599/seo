@@ -2,7 +2,7 @@ import { type Context } from ".keystone/types";
 import { getProducts } from "./graphql";
 import { PrismaClient } from "@prisma/client";
 
-type ProductData = {
+export type ProductData = {
   id: string;
   title: string | null;
   status: string | null;

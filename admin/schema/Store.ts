@@ -1,5 +1,11 @@
 import { graphql, list } from "@keystone-6/core";
-import { integer, relationship, text, virtual } from "@keystone-6/core/fields";
+import {
+  integer,
+  json,
+  relationship,
+  text,
+  virtual,
+} from "@keystone-6/core/fields";
 
 import { createdAtField, updatedAtField } from "../helpers/fields";
 import { type Lists } from ".keystone/types";
@@ -103,14 +109,12 @@ export const Store: Lists.Store = list({
         createView: { fieldMode: "hidden" },
       },
     }),
-    // background: text({
-    //   ui: {
-    //     description:
-    //       "Store background information (try asking: https://gemini.google.com/app to conclude it)",
-    //     displayMode: "textarea",
-    //   },
-    // }),
-
+    orderSummary: json({
+      ui: {
+        createView: { fieldMode: "hidden" },
+        views: "./admin/views/store-order-summary",
+      },
+    }),
     createdAt: createdAtField(),
     updatedAt: updatedAtField(),
   },

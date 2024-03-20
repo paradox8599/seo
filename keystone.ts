@@ -25,6 +25,7 @@ import {
   generateBlogArticleAPI,
   generateBlogHeadingsAPI,
 } from "./admin/routes/blog";
+import { getOrdersSummaryAPI } from "./admin/routes/orders";
 
 function withContext<
   F extends (
@@ -71,6 +72,11 @@ export default withAuth(
         app.post(
           "/api/blog/bulk-add",
           withContext(context, bulkAddBlogUrlsAPI),
+        );
+        // orders
+        app.post(
+          "/api/orders/summary",
+          withContext(context, getOrdersSummaryAPI),
         );
       },
     },
