@@ -91,13 +91,18 @@ export async function fetchAllProducts(
       return arr;
     }, [] as string[]);
     const colNameSet = Array.from(new Set(colNames));
-    console.log("Creating collections");
-    await context.sudo().query.Collection.createMany({
-      data: colNameSet.map((c) => ({
-        name: c,
-        store: { connect: { id: store.id } },
-      })),
-    });
+    console.log(
+      `Creating ${colNameSet.length} collections from ${products.length} products`,
+    );
+    for (let i = 0; i < colNameSet.length; i += 100) {
+      console.log(`Creating collections ${i} - ${i + 100}`);
+      await context.sudo().query.Collection.createMany({
+        data: colNameSet.slice(i, i + 100).map((c) => ({
+          name: c,
+          store: { connect: { id: store.id } },
+        })),
+      });
+    }
     console.log("Getting colletions db info");
     const colsData = (await context.sudo().query.Collection.findMany({
       where: { store: { id: { equals: store.id } } },
@@ -112,22 +117,25 @@ export async function fetchAllProducts(
         return col;
       }),
     }));
-    console.log("Creating products");
-    await context.sudo().query.Product.createMany({
-      data: connectedProducts.map((p) => ({
-        shopifyId: p.id,
-        productUpdatedAt: p.updatedAt,
-        productCreatedAt: p.createdAt,
-        title: p.title ?? "",
-        store: { connect: { id: store.id } },
-        category: p.productCategory?.productTaxonomyNode?.fullName ?? "None",
-        collections: { connect: p.cols.map((c) => ({ id: c.id })) },
-        status: p.status ?? "",
-        SEOTitle: p.seo.title ?? "",
-        SEODescription: p.seo.description ?? "",
-        version: store.version,
-      })),
-    });
+    console.log(`Creating ${connectedProducts.length} products`);
+    for (let i = 0; i < connectedProducts.length; i += 100) {
+      console.log(`Creating products ${i} - ${i + 100}`);
+      await context.sudo().query.Product.createMany({
+        data: connectedProducts.slice(i, i + 100).map((p) => ({
+          shopifyId: p.id,
+          productUpdatedAt: p.updatedAt,
+          productCreatedAt: p.createdAt,
+          title: p.title ?? "",
+          store: { connect: { id: store.id } },
+          category: p.productCategory?.productTaxonomyNode?.fullName ?? "None",
+          collections: { connect: p.cols.map((c) => ({ id: c.id })) },
+          status: p.status ?? "",
+          SEOTitle: p.seo.title ?? "",
+          SEODescription: p.seo.description ?? "",
+          version: store.version,
+        })),
+      });
+    }
 
     console.log("Finished fetching");
     return;
